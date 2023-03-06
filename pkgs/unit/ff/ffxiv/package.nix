@@ -110,6 +110,17 @@ let
         cp "$reg" "$WINEPREFIX"
       done
 
+      # Avoid spurious TCC warnings on Darwin.
+      for path in Desktop Documents Downloads Music Pictures Videos AppData/Roaming/Microsoft/Windows/Templates; do
+        folder="$WINEPREFIX/dosdevices/c:/users/$(whoami)/$path"
+        if [[ -L "$folder" ]]; then
+          rm "$folder"
+        fi
+        if [[ ! -d "$folder" ]]; then
+          mkdir -p "$folder"
+        fi
+      done
+
       for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
         wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f  > /dev/null 2>&1
       done
@@ -139,17 +150,8 @@ let
         ln -sfn "$FFXIVCONFIG/dxvk.conf" "$FFXIVWINPATH/boot/dxvk.conf"
       fi
 
-      if [[ -L "$WINEDOCUMENTS" ]]; then
-        rm "$WINEDOCUMENTS"
-        mkdir -p "$(dirname "$FFXIVWINCONFIG")" "$FFXIVCONFIG"
-        ln -s "$FFXIVCONFIG" "$FFXIVWINCONFIG"
-      fi
-
-      # Avoid spurious TCC warnings on Darwin.
-      if [[ -L "$WINEPREFIX/dosdevices/c:/users/$(whoami)/Desktop" ]]; then
-        rm "$WINEPREFIX/dosdevices/c:/users/$(whoami)/Desktop"
-        mkdir -p "$WINEPREFIX/dosdevices/c:/users/$(whoami)/Desktop"
-      fi
+      mkdir -p "$(dirname "$FFXIVWINCONFIG")" "$FFXIVCONFIG"
+      ln -sfn "$FFXIVCONFIG" "$FFXIVWINCONFIG"
 
       cd "$FFXIVWINPATH/boot" && wine64 ffxivboot64.exe
     '';
