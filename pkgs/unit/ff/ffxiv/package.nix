@@ -106,9 +106,8 @@ let
         ln -sfn "$folder" "$WINEPREFIX/drive_c"
       done
 
-      for reg in "${winePrefix}"/*.reg; do
-        cp "$reg" "$WINEPREFIX"
-      done
+      cp '${winePrefix}/system.reg' "$WINEPREFIX"
+      cp '${winePrefix}/user.reg' "$WINEPREFIX"
 
       # Avoid spurious TCC warnings on Darwin.
       for path in Desktop Documents Downloads Music Pictures Videos AppData/Roaming/Microsoft/Windows/Templates; do
