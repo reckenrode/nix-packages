@@ -10,6 +10,7 @@
 , coreutils
 , darwin
 , dxvk
+, gnused
 , pkgsCross
 , wine64Packages
 }:
@@ -43,17 +44,29 @@ let
   };
 
   winePrefix = callPackage ./wine-prefix.nix { } {
+    inherit gnused;
     wine = wine64;
-    extras."windows/system32" = [
+    extras.files."windows/system32" = [
       "${lib.getBin dxvk}/x64"
       "${lib.getBin pkgsCross.mingwW64.windows.mcfgthreads}/bin"
     ];
+    extras.buildPhase = lib.optionalString stdenvNoCC.isDarwin ''
+      echo "Setting up macOS keyboard mappings"
+      for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
+        wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
+      done
+    '' + ''
+      # Set up overrides to make sure DXVK is being used.
+      for dll in dxgi d3d11 mcfgthread-12; do
+        wine64 reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f
+      done
+    '';
   };
 
   executable = writeShellApplication {
     name = pname;
 
-    runtimeInputs = [ wine64 ];
+    runtimeInputs = [ coreutils wine64 ];
 
     text = ''
       # Set paths for the game and its configuration.
@@ -106,8 +119,16 @@ let
         ln -sfn "$folder" "$WINEPREFIX/drive_c"
       done
 
-      cp '${winePrefix}/system.reg' "$WINEPREFIX"
-      cp '${winePrefix}/user.reg' "$WINEPREFIX"
+      # Avoid copying the default registry files unless they have changed.
+      # Only copying them when necessary improves startup performance.
+      for regfile in user.reg system.reg; do
+        registryFile="${winePrefix}/$regfile"
+        registryDigest="$WINEPREFIX/$regfile.digest"
+        if ! sha256sum -c >(cat "$registryDigest"; printf "  %s" "$registryFile"); then
+          cp "$registryFile" "$WINEPREFIX"
+          sha256sum "$registryFile" | cut -d' ' -f1 > "$registryDigest"
+        fi
+      done
 
       # Avoid spurious TCC warnings on Darwin.
       for path in Desktop Documents Downloads Music Pictures Videos AppData/Roaming/Microsoft/Windows/Templates; do
@@ -118,15 +139,6 @@ let
         if [[ ! -d "$folder" ]]; then
           mkdir -p "$folder"
         fi
-      done
-
-      for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
-        wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f  > /dev/null 2>&1
-      done
-
-      # Set up overrides to make sure DXVK is being used.
-      for dll in dxgi d3d11 mcfgthread-12; do
-        wine64 reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f > /dev/null 2>&1
       done
 
       mkdir -p "$FFXIVWINPATH/game/movie/ffxiv"
