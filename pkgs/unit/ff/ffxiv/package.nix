@@ -124,7 +124,7 @@ let
       for regfile in user.reg system.reg; do
         registryFile="${winePrefix}/$regfile"
         registryDigest="$WINEPREFIX/$regfile.digest"
-        if ! sha256sum -c >(cat "$registryDigest"; printf "  %s" "$registryFile"); then
+        if ! sha256sum -c <(cat "$registryDigest"; printf "  %s" "$registryFile"); then
           cp "$registryFile" "$WINEPREFIX"
           sha256sum "$registryFile" | cut -d' ' -f1 > "$registryDigest"
         fi
