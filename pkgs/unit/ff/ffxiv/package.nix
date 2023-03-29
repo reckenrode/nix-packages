@@ -119,6 +119,8 @@ let
         ln -sfn "$folder" "$WINEPREFIX/drive_c"
       done
 
+      ln -sfn / "$WINEPREFIX/dosdevices/z:"
+
       # Avoid copying the default registry files unless they have changed.
       # Only copying them when necessary improves startup performance.
       for regfile in user.reg system.reg; do
