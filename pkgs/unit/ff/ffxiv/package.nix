@@ -242,7 +242,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     icon = finalAttrs.pname;
     type = "Application";
     comment = finalAttrs.meta.description;
-    desktopName = desktopName;
+    inherit desktopName;
     categories = [ "Game" "RolePlaying" ];
     prefersNonDefaultGPU = true;
     startupNotify = false;
