@@ -8,11 +8,11 @@
 , unzip
 , writeShellApplication
 , coreutils
-, darwin
-, dxvk
 , gnused
 , pkgsCross
-, wine64Packages
+, dxvk
+, moltenvk
+, wine64
 }:
 
 let
@@ -23,7 +23,7 @@ let
   # multiple GB unnecessarily.
   ffxivClient = callPackage ./ffxiv-client.nix { };
 
-  moltenvk = darwin.moltenvk.overrideAttrs (oldAttrs: {
+  moltenvk' = moltenvk.overrideAttrs (oldAttrs: {
     patches = oldAttrs.patches ++ [
       (fetchpatch {
         name = "ffxiv-flicker.patch";
@@ -38,14 +38,46 @@ let
     ];
   });
 
-  wine64 = wine64Packages.unstable.override {
-    inherit moltenvk;
+  macPreloaderPatches = rec {
+    v7_x = [
+      { pr = "1616"; hash = "sha256-+DJPtzZDFQ7rUlAxARI3dN8nngRP3UZIvdJSh/U8Tx0="; }
+      { pr = "1713"; hash = "sha256-LQCPUPIuy9fN+GUhRTBnOuvbzxhsBAz9VI4gVmelHys="; }
+    ] ++ v8_0;
+    v8_0 = v8_1;
+    v8_1 = [
+      { pr = "2129"; hash = "sha256-VscBd7B4CXSJtMxZb7hcuENrFg+/UPjR3/yho6IMfsw="; }
+    ] ++ v8_2;
+    v8_2 = v8_3;
+    v8_3 = [
+      { pr = "2329"; hash = "sha256-N2NdKhEzj1/dcw7H/YBzH7L63QS7Cru+vsFOBYhJJ58="; }
+    ];
+  };
+
+  patches = lib.optionals stdenvNoCC.isDarwin (
+    if lib.versions.major wine64.version == "7"
+    then builtins.trace macPreloaderPatches.v7_x macPreloaderPatches.v7_x
+    else macPreloaderPatches."v${lib.replaceChars [ "." ] [ "_" ] wine64.version})" or [ ]
+  );
+
+  fetchWinePatches = { pr, hash }:
+    fetchpatch {
+      name = "wine-merge_request-${pr}.patch";
+      url = "https://gitlab.winehq.org/wine/wine/-/merge_requests/${pr}.patch";
+      inherit hash;
+    };
+
+  wine64' = wine64.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ map fetchWinePatches patches;
+  });
+
+  wine64'' = wine64'.override {
     embedInstallers = true;
+    moltenvk = moltenvk';
   };
 
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
-    wine = wine64;
+    wine = wine64'';
     extras.files."windows/system32" = [
       "${lib.getBin dxvk}/x64"
       "${lib.getBin pkgsCross.mingwW64.windows.mcfgthreads}/bin"
@@ -66,7 +98,7 @@ let
   executable = writeShellApplication {
     name = pname;
 
-    runtimeInputs = [ coreutils wine64 ];
+    runtimeInputs = [ coreutils wine64'' ];
 
     text = ''
       # Set paths for the game and its configuration.
