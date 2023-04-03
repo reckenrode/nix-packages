@@ -2,11 +2,11 @@
 
 { lib
 , fetchurl
-, stdenv
+, stdenvNoCC
 , unzip
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "daisydisk";
   version = "4.24";
 

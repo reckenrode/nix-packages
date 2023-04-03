@@ -2,11 +2,11 @@
 
 { lib
 , fetchurl
-, stdenv
+, stdenvNoCC
 , unzip
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "secretive";
   version = "2.3.0";
 
