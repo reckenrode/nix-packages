@@ -17,6 +17,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ unzip ];
 
+  dontFixup = true;
+
   installPhase = ''
     mkdir -p $out/Applications
     cp -R ../*.app $out/Applications
