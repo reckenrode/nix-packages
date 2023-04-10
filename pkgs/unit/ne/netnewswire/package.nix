@@ -17,9 +17,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ unzip ];
 
+  sourceRoot = ".";
+
   installPhase = ''
     mkdir -p $out/Applications
-    cp -R ../*.app $out/Applications
+    cp -R *.app $out/Applications
   '';
 
   meta = {
