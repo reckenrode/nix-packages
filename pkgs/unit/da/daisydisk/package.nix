@@ -8,11 +8,11 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "daisydisk";
-  version = "4.24";
+  version = "4.25";
 
   src = fetchurl {
-    url = "https://web.archive.org/web/20230326094956/https://daisydiskapp.com/download/DaisyDisk.zip";
-    hash = "sha256-UWkJ8teqpFBcvU0UujCxLzyQ3bGwC9Zbsh5xWCyQFcc=";
+    url = "https://daisydiskapp.com/download/DaisyDisk_${lib.replaceStrings ["."] ["_"] finalAttrs.version}.zip";
+    hash = "sha256-pIiPqNBrwlDDkWNlbHd3/3PI6fLq+B0Qb0UcKPPkgxc=";
   };
 
   nativeBuildInputs = [ unzip ];
