@@ -19,6 +19,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   dontFixup = true;
 
+  # This file is a symlink to itself.  The unversioned download doesn’t have it, but the versioned
+  # one does.  If this symlink is present, the notarization check will fail.  Deleting it allows the
+  # notarization check to succeed.  This can be removed once the versioned download is fixed.
+  buildPhase = ''
+    rm Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt.lproj/pt_BR.lproj
+  '';
+
   installPhase = ''
     mkdir -p $out/Applications
     cp -R ../*.app $out/Applications
