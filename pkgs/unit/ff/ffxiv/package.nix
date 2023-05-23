@@ -55,7 +55,7 @@ let
 
   patches = lib.optionals stdenvNoCC.isDarwin (
     if lib.versions.major wine64.version == "7"
-    then builtins.trace macPreloaderPatches.v7_x macPreloaderPatches.v7_x
+    then macPreloaderPatches.v7_x
     else macPreloaderPatches."v${lib.replaceStrings [ "." ] [ "_" ] wine64.version}" or [ ]
   );
 
