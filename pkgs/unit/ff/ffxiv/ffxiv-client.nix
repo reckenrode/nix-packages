@@ -7,15 +7,15 @@
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
-  pname = "ffxiv";
-  version = "1.0.8";
+  pname = "ffxiv-client";
+  version = "1.1.2";
 
   # The Windows installer is a 32-bit app, which won’t run on Darwin because WoW64 is not yet
   # supported there with upstream Wine. The Mac client also has Bink-encoded video files that are
   # needed because the WMV-encoded ones in the Windows client don’t work with Wine by default.
   src = fetchurl {
     url = "https://mac-dl.ffxiv.com/cw/finalfantasyxiv-${finalAttrs.version}.zip";
-    sha256 = "sha256-CBzl0gxKyQpkyu8kTZaFYFEJQC0vMlObRBGGOLOxmNA=";
+    hash = "sha256-p44Q1tSsYpvCCz1PVHUJ4Z/e6EpNPdw9FI5bo3PP9qk=";
   };
 
   nativeBuildInputs = [ unzip ];
