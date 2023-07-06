@@ -1,6 +1,7 @@
 { lib
 , stdenvNoCC
 , fetchurl
+, writeScript
 , unzip
 , wine64Packages
 }:
@@ -24,6 +25,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     bootstrap_path='Contents/SharedSupport/finalfantasyxiv/support/published_Final_Fantasy/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn'
     cp -Rv "$bootstrap_path/boot" "$bootstrap_path/game" $out
     rm -v $out/boot/ffxiv_dx11.dxvk-cache-base
+  '';
+
+  # The hash is going to be the same regardless of system, so hardcode to allow the update script
+  # to be run on unsupported platforms like aarch64-darwin.
+  passthru.updateScript = writeScript "update-ffxiv-client" ''
+    #!/usr/bin/env nix-shell
+    #!nix-shell -i bash -p curl yq common-updater-scripts
+    set -eu -o pipefail
+    FFXIV_SPARKLE_FEED=https://mac-dl.ffxiv.com/cw/finalfantasy-mac.xml
+    version=$(curl "$FFXIV_SPARKLE_FEED" | xq -r '.rss.channel.item.enclosure."@sparkle:version"')
+    systemArgs=maintainer/update-pkgs.nix update-source-version ffxiv "$version"
+      --system=x86_64-darwin --source-key=client.src --file=pkgs/unit/ff/ffxiv/ffxiv-client.nix
   '';
 
   meta = {

@@ -261,6 +261,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ln -sv "${finalAttrs.desktopItem}/share/applications" "$out/share/applications"
   '';
 
+  passthru.client = ffxivClient;
+
   meta = {
     description = "Unofficial client for the critically acclaimed MMORPG Final Fantasy XIV. FINAL FANTASY is a registered trademark of Square Enix Holdings Co., Ltd.";
     homepage = "https://www.finalfantasyxiv.com";
