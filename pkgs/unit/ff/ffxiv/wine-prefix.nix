@@ -63,19 +63,19 @@ stdenvNoCC.mkDerivation {
     wine64 reg delete 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders' /f
 
     # Force wine-mono and wine-gecko to have consistent MSI filenames.
-    declare -A msifiles=(
-      ['HKLM\Software\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\2ECC62471435D435AB0BD1EACDEC67EC\InstallProperties']='aaaa'
-      ['HKLM\Software\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\62AF1A74E17B5235181602FC881518FF\InstallProperties']='bbbb'
-      ['HKLM\Software\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-21-0-0-0-1000\Products\C8B8DB465E4EC1D4EB3CED0C41952694\InstallProperties']='cccc'
+    declare -a installedPkgs=(
+      $(grep InstallProperties prefix/system.reg | sed 's/^\[\([^]]*\)\].*$/\1/;s|\\\\|\\|g;s|^|HKLM\\|')
     )
-    for key in "''${!msifiles[@]}"; do
+    for key in "''${installedPkgs[@]}"; do
       msipath=$(
         wine64 reg query "$key" /v LocalPackage \
         | tail -n 2 | cut -c31- | head -n 1 | sed -e s/$'\r'//';s/C:\\//;s|\\|/|g'
       )
-      mv "prefix/drive_c/$msipath" "prefix/drive_c/windows/Installer/''${msifiles[$key]}.msi"
-      wine64 reg add "$key" /v 'LocalPackage' /d 'C:\windows\Installer\'"''${msifiles[$key]}"'.msi' /f
-    done
+      read x
+      stable_filename="$x$x$x$x.msi"
+      mv "prefix/drive_c/$msipath" "prefix/drive_c/windows/Installer/$stable_filename"
+      wine64 reg add "$key" /v 'LocalPackage' /d 'C:\windows\Installer\'"$stable_filename" /f
+    done < <(echo {a..z} | tr ' ' '\n')
   '' + extraBuildPhase + ''
     wineserver --kill
 
