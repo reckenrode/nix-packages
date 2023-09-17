@@ -11,8 +11,8 @@
 , gnused
 , pkgsCross
 , dxvk
-, moltenvk
-, wine64
+, darwin
+, wine64Packages
 }:
 
 let
@@ -23,7 +23,7 @@ let
   # multiple GB unnecessarily.
   ffxivClient = callPackage ./ffxiv-client.nix { };
 
-  moltenvk' = moltenvk.overrideAttrs (oldAttrs: {
+  moltenvk = darwin.moltenvk.overrideAttrs (oldAttrs: {
     patches = oldAttrs.patches ++ [
       (fetchpatch {
         name = "ffxiv-flicker.patch";
@@ -53,10 +53,10 @@ let
     ];
   };
 
-  patches = lib.optionals stdenvNoCC.isDarwin (
-    if lib.versions.major wine64.version == "7"
+  patches = wine: lib.optionals stdenvNoCC.isDarwin (
+    if lib.versions.major wine.version == "7"
     then macPreloaderPatches.v7_x
-    else macPreloaderPatches."v${lib.replaceStrings [ "." ] [ "_" ] wine64.version}" or [ ]
+    else macPreloaderPatches."v${lib.replaceStrings [ "." ] [ "_" ] wine.version}" or [ ]
   );
 
   fetchWinePatches = { pr, hash }:
@@ -66,18 +66,18 @@ let
       inherit hash;
     };
 
-  wine64' = wine64.overrideAttrs (old: {
-    patches = (old.patches or [ ]) ++ map fetchWinePatches patches;
+  wine64 = wine64Packages.unstable.overrideAttrs (self: super: {
+    patches = (super.patches or [ ]) ++ map fetchWinePatches (patches self);
   });
 
-  wine64'' = wine64'.override {
+  wine64' = wine64.override {
+    inherit moltenvk;
     embedInstallers = true;
-    moltenvk = moltenvk';
   };
 
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
-    wine = wine64'';
+    wine = wine64';
     extras.files."windows/system32" = [
       "${lib.getBin dxvk}/x64"
       "${lib.getBin pkgsCross.mingwW64.windows.mcfgthreads_pre_gcc_13}/bin"
@@ -98,7 +98,7 @@ let
   executable = writeShellApplication {
     name = pname;
 
-    runtimeInputs = [ coreutils wine64'' ];
+    runtimeInputs = [ coreutils wine64' ];
 
     text = ''
       # Set paths for the game and its configuration.
