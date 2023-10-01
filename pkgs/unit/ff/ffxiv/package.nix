@@ -2,6 +2,7 @@
 , stdenvNoCC
 , callPackage
 , fetchpatch
+, fetchgit
 , desktopToDarwinBundle
 , icoutils
 , makeDesktopItem
@@ -53,6 +54,19 @@ let
     ];
   };
 
+  # Upstream Wine is not compatible with the new launcher, but Proton is. Use the jscript and
+  # mshtml implementations from Proton with Wine, so the new launcher can be used.
+  proton.src = fetchgit {
+    url = "https://github.com/ValveSoftware/wine.git";
+    rev = "8a8ec5f86d8ab1e1d4c6bc88dda016b5e8cf479e";
+    hash = "sha256-jNqpH9LXD/ysAkb+ZzX4KNYv7A5YIJahnhBf3+CJXy4=";
+    sparseCheckout = [
+      "dlls/mshtml"
+      "dlls/jscript"
+    ];
+  };
+  protonCompatPatches = [ ./test.h-compat.patch ];
+
   patches = wine: lib.optionals stdenvNoCC.isDarwin (
     if lib.versions.major wine.version == "7"
     then macPreloaderPatches.v7_x
@@ -67,7 +81,19 @@ let
     };
 
   wine64 = wine64Packages.unstable.overrideAttrs (self: super: {
-    patches = (super.patches or [ ]) ++ map fetchWinePatches (patches self);
+    patches = (super.patches or [ ])
+      ++ protonCompatPatches
+      ++ map fetchWinePatches (patches self);
+
+    postUnpack = (super.postUnpack or "") + ''
+      for dir in mshtml jscript; do
+        rm -rf "$sourceRoot/dlls/$dir"
+        cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
+        chmod -R u+w "$sourceRoot/dlls/$dir"
+      done
+      substituteInPlace "$sourceRoot/dlls/mshtml/nsiface.idl" \
+        --replace 'GECKO_VERSION \"2.47.3\"' 'GECKO_VERSION \"2.47.4\"'
+    '';
   });
 
   wine64' = wine64.override {
