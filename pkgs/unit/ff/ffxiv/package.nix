@@ -78,10 +78,7 @@ let
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
     wine = wine64';
-    extras.files."windows/system32" = [
-      "${lib.getBin dxvk}/x64"
-      "${lib.getBin pkgsCross.mingwW64.windows.mcfgthreads_pre_gcc_13}/bin"
-    ];
+    extras.files."windows/system32" = [ "${lib.getBin dxvk}/x64" ];
     extras.buildPhase = lib.optionalString stdenvNoCC.isDarwin ''
       echo "Setting up macOS keyboard mappings"
       for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
