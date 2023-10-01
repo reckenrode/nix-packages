@@ -55,12 +55,13 @@ stdenvNoCC.mkDerivation {
     wine64 reg delete 'HKLM\Software\Microsoft\Windows NT\CurrentVersion\ProfileList\S-1-5-21-0-0-0-1000' \
       /v 'ProfileImagePath' /f
     wine64 reg delete 'HKLM\Software\Microsoft\Cryptography' /v MachineGuid /f
-    wine64 reg delete 'HKLM\System\CurrentControlSet\Enum\PCI\VEN_0000&DEV_0000&SUBSYS_00000000&REV_00\00000000\Device Parameters' \
-      /v 'VideoID' /f
+    wine64 reg delete 'HKLM\System\CurrentControlSet\Enum' /f
 
     wine64 reg delete 'HKCU\Environment' /f
     wine64 reg delete 'HKCU\Volatile Environment' /f
     wine64 reg delete 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders' /f
+
+    wineserver -k SIGTERM
 
     # Force wine-mono and wine-gecko to have consistent MSI filenames.
     declare -a installedPkgs=(
@@ -69,15 +70,17 @@ stdenvNoCC.mkDerivation {
     for key in "''${installedPkgs[@]}"; do
       msipath=$(
         wine64 reg query "$key" /v LocalPackage \
-        | tail -n 2 | cut -c31- | head -n 1 | sed -e s/$'\r'//';s/C:\\//;s|\\|/|g'
+        | tail -n 2 | cut -c31- | head -n 1 | sed -e s/$'\r'//';s/C:\\//;s|\\|/|g' || true
       )
-      read x
-      stable_filename="$x$x$x$x.msi"
-      mv "prefix/drive_c/$msipath" "prefix/drive_c/windows/Installer/$stable_filename"
-      wine64 reg add "$key" /v 'LocalPackage' /d 'C:\windows\Installer\'"$stable_filename" /f
+      if [ -n "$msipath" ]; then
+        read x
+        stable_filename="$x$x$x$x.msi"
+        mv "prefix/drive_c/$msipath" "prefix/drive_c/windows/Installer/$stable_filename"
+        wine64 reg add "$key" /v 'LocalPackage' /d 'C:\windows\Installer\'"$stable_filename" /f
+      fi
     done < <(echo {a..z} | tr ' ' '\n')
   '' + extraBuildPhase + ''
-    wineserver --kill
+    wineserver -k SIGTERM
 
     # Set the modification time to the UNIX epoch, so the value is consistent between builds.
     # See https://devblogs.microsoft.com/oldnewthing/20220602-00/?p=106706 for the magic number.
