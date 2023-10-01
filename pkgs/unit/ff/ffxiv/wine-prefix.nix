@@ -15,7 +15,8 @@ let
     targetPath="$WINEPREFIX/drive_c/${targetPath}"
     mkdir -p "$targetPath"
     for file in "${sourcePath}"/*; do
-      cp -R "$file" "$targetPath"
+      rm -f "$targetPath/$(basename "$file")"
+      ln -s "$(readlink -f "$file")" "$targetPath"
     done
   '');
 
