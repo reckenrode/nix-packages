@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 
 { lib
-, fetchurl
 , stdenvNoCC
+, fetchurl
 , unzip
+, gitUpdater
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -21,6 +22,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     mkdir -p $out/Applications
     cp -R ../*.app $out/Applications
   '';
+
+  passthru.updateScript = gitUpdater { rev-prefix = "v"; };
 
   meta = {
     description = ''
