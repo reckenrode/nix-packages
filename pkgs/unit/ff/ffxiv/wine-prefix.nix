@@ -56,7 +56,6 @@ stdenvNoCC.mkDerivation {
     wine64 reg delete 'HKLM\Software\Microsoft\Windows NT\CurrentVersion\ProfileList\S-1-5-21-0-0-0-1000' \
       /v 'ProfileImagePath' /f
     wine64 reg delete 'HKLM\Software\Microsoft\Cryptography' /v MachineGuid /f
-    wine64 reg delete 'HKLM\System\CurrentControlSet\Enum' /f
 
     wine64 reg delete 'HKCU\Environment' /f
     wine64 reg delete 'HKCU\Volatile Environment' /f
