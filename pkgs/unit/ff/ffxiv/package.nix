@@ -2,6 +2,7 @@
 , stdenvNoCC
 , callPackage
 , fetchpatch
+, fetchurl
 , fetchgit
 , desktopToDarwinBundle
 , icoutils
@@ -39,21 +40,6 @@ let
     ];
   });
 
-  macPreloaderPatches = rec {
-    v7_x = [
-      { pr = "1616"; hash = "sha256-+DJPtzZDFQ7rUlAxARI3dN8nngRP3UZIvdJSh/U8Tx0="; }
-      { pr = "1713"; hash = "sha256-LQCPUPIuy9fN+GUhRTBnOuvbzxhsBAz9VI4gVmelHys="; }
-    ] ++ v8_0;
-    v8_0 = v8_1;
-    v8_1 = [
-      { pr = "2129"; hash = "sha256-VscBd7B4CXSJtMxZb7hcuENrFg+/UPjR3/yho6IMfsw="; }
-    ] ++ v8_2;
-    v8_2 = v8_3;
-    v8_3 = [
-      { pr = "2329"; hash = "sha256-N2NdKhEzj1/dcw7H/YBzH7L63QS7Cru+vsFOBYhJJ58="; }
-    ];
-  };
-
   # Upstream Wine is not compatible with the new launcher, but Proton is. Use the jscript and
   # mshtml implementations from Proton with Wine, so the new launcher can be used.
   proton.src = fetchgit {
@@ -67,23 +53,17 @@ let
   };
   protonCompatPatches = [ ./test.h-compat.patch ];
 
-  patches = wine: lib.optionals stdenvNoCC.isDarwin (
-    if lib.versions.major wine.version == "7"
-    then macPreloaderPatches.v7_x
-    else macPreloaderPatches."v${lib.replaceStrings [ "." ] [ "_" ] wine.version}" or [ ]
-  );
+  msyncPatch = [
+    (fetchurl {
+      url = "https://github.com/marzent/wine-msync/raw/2282aea3dba058c425ee4207a349045002a62aab/msync-staging.patch";
+      hash = "sha256-s/g35ond3urz1IJl5tIaCRhfB6/AR3IBFsKeiFbF29o=";
+    })
+  ];
 
-  fetchWinePatches = { pr, hash }:
-    fetchpatch {
-      name = "wine-merge_request-${pr}.patch";
-      url = "https://gitlab.winehq.org/wine/wine/-/merge_requests/${pr}.patch";
-      inherit hash;
-    };
-
-  wine64 = wine64Packages.unstable.overrideAttrs (self: super: {
+  wine64 = lib.overrideDerivation (wine64Packages.staging.override { embedInstallers = true; }) (super: {
     patches = (super.patches or [ ])
       ++ protonCompatPatches
-      ++ map fetchWinePatches (patches self);
+      ++ msyncPatch;
 
     postUnpack = (super.postUnpack or "") + ''
       for dir in mshtml jscript; do
@@ -96,14 +76,9 @@ let
     '';
   });
 
-  wine64' = wine64.override {
-    inherit moltenvk;
-    embedInstallers = true;
-  };
-
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
-    wine = wine64';
+    wine = wine64;
     extras.files."windows/system32" = [ "${lib.getBin dxvk}/x64" ];
     extras.buildPhase = lib.optionalString stdenvNoCC.isDarwin ''
       echo "Setting up macOS keyboard mappings"
@@ -121,7 +96,7 @@ let
   executable = writeShellApplication {
     name = pname;
 
-    runtimeInputs = [ coreutils wine64' ];
+    runtimeInputs = [ coreutils wine64 ];
 
     text = ''
       # Set paths for the game and its configuration.
@@ -145,6 +120,7 @@ let
       # Enable ESYNC and disable logging
       WINEDEBUG=-all
       WINEESYNC=1
+      WINEMSYNC=1
 
       # Darwin MoltenVK compatibility settings
       if [[ "$(${coreutils}/bin/uname -s)" = "Darwin" ]]; then
@@ -163,7 +139,7 @@ let
           MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE
       fi
 
-      export WINEPREFIX MVK_CONFIG_LOG_LEVEL WINEDEBUG WINEESYNC \
+      export WINEPREFIX MVK_CONFIG_LOG_LEVEL WINEDEBUG WINEESYNC WINEMSYNC \
         DXVK_CONFIG_FILE DXVK_LOG_PATH DXVK_STATE_CACHE_PATH
 
       mkdir -p "$WINEPREFIX/dosdevices" "$WINEPREFIX/drive_c" "$WINEPREFIX/drive_f"
