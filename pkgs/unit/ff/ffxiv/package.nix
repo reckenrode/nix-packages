@@ -77,6 +77,8 @@ let
             --replace DECLSPEC_HIDDEN ""
         done
       done
+      substituteInPlace "$sourceRoot/dlls/jscript/Makefile.in" \
+        --replace vbarray.c 'vbarray.c arraybuf.c'
       substituteInPlace "$sourceRoot/dlls/mshtml/nsiface.idl" \
         --replace 'GECKO_VERSION \"2.47.3\"' 'GECKO_VERSION \"2.47.4\"'
     '';
