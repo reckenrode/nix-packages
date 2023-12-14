@@ -67,9 +67,11 @@ let
 
     postUnpack = (super.postUnpack or "") + ''
       for dir in mshtml jscript; do
+        mv "$sourceRoot/dlls/$dir/Makefile.in" Makefile.in
         rm -rf "$sourceRoot/dlls/$dir"
         cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
         chmod -R u+w "$sourceRoot/dlls/$dir"
+        mv Makefile.in "$sourceRoot/dlls/$dir/Makefile.in"
       done
       substituteInPlace "$sourceRoot/dlls/mshtml/nsiface.idl" \
         --replace 'GECKO_VERSION \"2.47.3\"' 'GECKO_VERSION \"2.47.4\"'
