@@ -72,6 +72,10 @@ let
         cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
         chmod -R u+w "$sourceRoot/dlls/$dir"
         mv Makefile.in "$sourceRoot/dlls/$dir/Makefile.in"
+        for file in "$sourceRoot/dlls/$dir"/*.{c,h}; do
+          substituteInPlace "$file" \
+            --replace DECLSPEC_HIDDEN ""
+        done
       done
       substituteInPlace "$sourceRoot/dlls/mshtml/nsiface.idl" \
         --replace 'GECKO_VERSION \"2.47.3\"' 'GECKO_VERSION \"2.47.4\"'
