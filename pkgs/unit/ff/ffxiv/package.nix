@@ -55,8 +55,8 @@ let
 
   msyncPatch = [
     (fetchurl {
-      url = "https://github.com/marzent/wine-msync/raw/2282aea3dba058c425ee4207a349045002a62aab/msync-staging.patch";
-      hash = "sha256-s/g35ond3urz1IJl5tIaCRhfB6/AR3IBFsKeiFbF29o=";
+      url = "https://github.com/marzent/wine-msync/raw/4956fb93528d728a9941642b24400b7ebf000465/msync-staging.patch";
+      hash = "sha256-s/8mWDnPzc9OKJYCsmdbxK+eSHN7GT5N7TriYLZnCOY=";
     })
   ];
 
