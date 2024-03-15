@@ -16,7 +16,6 @@
 , dxvk
 , darwin
 , wine64Packages
-, d3dmetal
 , enableDXVK ? true
 , enableD3DMetal ? false # Currently broken.
 }:
@@ -118,11 +117,7 @@ let
 
     runtimeInputs = [ coreutils wine64 ];
 
-    text = lib.optionalString enableD3DMetal ''
-      # Set WINEDLLPATH to allow Wine to find the D3DMetal builtin DLLs and shared dylib.
-      WINEDLLPATH_PREPEND=${d3dmetal}/lib/wine
-      export WINEDLLPATH_PREPEND
-    '' + ''
+    text = ''
       # Set paths for the game and its configuration.
       WINEPREFIX="''${XDG_DATA_HOME:-"$HOME/.local/share"}/ffxiv"
       FFXIVCONFIG="''${XDG_CONFIG_HOME:-"$HOME/.config"}/ffxiv"
