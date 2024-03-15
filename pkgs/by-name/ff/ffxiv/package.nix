@@ -57,12 +57,29 @@ let
   };
   protonCompatPatches = [ ./test.h-compat.patch ];
 
-  msyncPatch = [
-    (fetchurl {
-      url = "https://github.com/marzent/wine-msync/raw/4956fb93528d728a9941642b24400b7ebf000465/msync-staging.patch";
-      hash = "sha256-s/8mWDnPzc9OKJYCsmdbxK+eSHN7GT5N7TriYLZnCOY=";
-    })
-  ];
+  msyncPatch =
+    let
+      patchInfo = {
+        "9.4" = {
+          protocolVersion = 797;
+          hash = "sha256-ijM5Z6T/7Ycn8Pz8Y3EgHVIGp8vdgVZ5T4mk9aJPiuo=";
+        };
+      }.${wineVersion};
+      wineVersion = lib.getVersion wine64;
+    in
+    [
+      (fetchurl {
+        name = "msync-staging-${wineVersion}.patch";
+        url = "https://github.com/marzent/wine-msync/raw/4956fb93528d728a9941642b24400b7ebf000465/msync-staging.patch";
+        inherit (patchInfo) hash;
+        postFetch = ''
+          sed -E \
+            -e 's/((-|\+)#define SERVER_PROTOCOL_VERSION) 787/\1 ${toString patchInfo.protocolVersion}/' \
+            -e '/\+\+\+ b\/dlls\/ntdll\/unix\/sync\.c/,/---/{/118,7/,+7d}' \
+            -i "$out"
+        '';
+      })
+    ];
 
   wine64Staging = wine64Packages.staging.override {
     embedInstallers = true;
