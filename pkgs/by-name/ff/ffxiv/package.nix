@@ -48,8 +48,8 @@ let
   # mshtml implementations from Proton with Wine, so the new launcher can be used.
   proton.src = fetchgit {
     url = "https://github.com/ValveSoftware/wine.git";
-    rev = "8a8ec5f86d8ab1e1d4c6bc88dda016b5e8cf479e";
-    hash = "sha256-jNqpH9LXD/ysAkb+ZzX4KNYv7A5YIJahnhBf3+CJXy4=";
+    rev = "21e0d244da3336a640006e4e25ae28d7612a2c3c";
+    hash = "sha256-hd6xNFh97sRgwZpZMQfFCSV29DAZa6rDbSD0zk3jHHw=";
     sparseCheckout = [
       "dlls/mshtml"
       "dlls/jscript"
@@ -93,20 +93,10 @@ let
 
     postUnpack = (super.postUnpack or "") + ''
       for dir in mshtml jscript; do
-        mv "$sourceRoot/dlls/$dir/Makefile.in" Makefile.in
         rm -rf "$sourceRoot/dlls/$dir"
         cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
         chmod -R u+w "$sourceRoot/dlls/$dir"
-        mv Makefile.in "$sourceRoot/dlls/$dir/Makefile.in"
-        for file in "$sourceRoot/dlls/$dir"/*.{c,h}; do
-          substituteInPlace "$file" \
-            --replace DECLSPEC_HIDDEN ""
-        done
       done
-      substituteInPlace "$sourceRoot/dlls/jscript/Makefile.in" \
-        --replace vbarray.c 'vbarray.c arraybuf.c'
-      substituteInPlace "$sourceRoot/dlls/mshtml/nsiface.idl" \
-        --replace 'GECKO_VERSION \"2.47.3\"' 'GECKO_VERSION \"2.47.4\"'
     '';
   });
 
