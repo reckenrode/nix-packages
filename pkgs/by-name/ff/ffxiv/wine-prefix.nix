@@ -14,7 +14,7 @@ let
   copyFiles = targetPath: map (sourcePath: ''
     targetPath="$WINEPREFIX/drive_c/${targetPath}"
     mkdir -p "$targetPath"
-    for file in "${builtins.trace sourcePath sourcePath}"/*; do
+    for file in "${sourcePath}"/*; do
       rm -f "$targetPath/$(basename "$file")"
       ln -s "$(readlink -f "$file")" "$targetPath"
     done
