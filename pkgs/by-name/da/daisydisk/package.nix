@@ -12,19 +12,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   src = fetchurl {
     url = "https://daisydiskapp.com/download/DaisyDisk_${lib.replaceStrings ["."] ["_"] finalAttrs.version}.zip";
-    hash = "sha256-pIiPqNBrwlDDkWNlbHd3/3PI6fLq+B0Qb0UcKPPkgxc=";
+    hash = "sha256-+e2Xd2f9oDxZ5D1y8S5VQyIugnmWFAgkQkh0nwW3C8A=";
   };
 
   nativeBuildInputs = [ unzip ];
 
   dontFixup = true;
-
-  # This file is a symlink to itself.  The unversioned download doesn’t have it, but the versioned
-  # one does.  If this symlink is present, the notarization check will fail.  Deleting it allows the
-  # notarization check to succeed.  This can be removed once the versioned download is fixed.
-  buildPhase = ''
-    rm Contents/Frameworks/Sparkle.framework/Versions/A/Resources/pt.lproj/pt_BR.lproj
-  '';
 
   installPhase = ''
     mkdir -p $out/Applications

@@ -39,7 +39,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     FFXIV_SPARKLE_FEED=https://mac-dl.ffxiv.com/cw/finalfantasy-mac.xml
     version=$(curl "$FFXIV_SPARKLE_FEED" | xq -r '.rss.channel.item.enclosure."@sparkle:version"')
     update-source-version ffxiv "$version" \
-      --system=x86_64-darwin --source-key=client.src --file=pkgs/unit/ff/ffxiv/ffxiv-client.nix
+      --system=x86_64-darwin --source-key=client.src --file=pkgs/by-name/ff/ffxiv/ffxiv-client.nix
   '';
 
   meta = {

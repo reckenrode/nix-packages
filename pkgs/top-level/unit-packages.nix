@@ -31,4 +31,4 @@ let
     value = pkgs.callPackage path { };
   };
 in
-listToAttrs (map (mkUnitPackage pkgs) (enumeratePackages ../unit))
+listToAttrs (map (mkUnitPackage pkgs) (enumeratePackages ../by-name))

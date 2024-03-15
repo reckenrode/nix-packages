@@ -4,6 +4,7 @@
 , fetchpatch
 , fetchurl
 , fetchgit
+, substituteAll
 , desktopToDarwinBundle
 , icoutils
 , makeDesktopItem
@@ -15,8 +16,12 @@
 , dxvk
 , darwin
 , wine64Packages
+, d3dmetal
+, enableDXVK ? true
+, enableD3DMetal ? false # Currently broken.
 }:
 
+assert enableDXVK -> !enableD3DMetal;
 let
   pname = "ffxiv";
   desktopName = "Final Fantasy XIV (Unofficial)";
@@ -60,7 +65,12 @@ let
     })
   ];
 
-  wine64 = lib.overrideDerivation (wine64Packages.staging.override { embedInstallers = true; }) (super: {
+  wine64Staging = wine64Packages.staging.override {
+    embedInstallers = true;
+    inherit moltenvk;
+  };
+
+  wine64 = lib.overrideDerivation wine64Staging (super: {
     patches = (super.patches or [ ])
       ++ protonCompatPatches
       ++ msyncPatch;
@@ -87,13 +97,15 @@ let
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
     wine = wine64;
-    extras.files."windows/system32" = [ "${lib.getBin dxvk}/x64" ];
+    extras.files = lib.optionalAttrs enableDXVK {
+      "windows/system32" = [ "${lib.getBin dxvk}/x64" ];
+    };
     extras.buildPhase = lib.optionalString stdenvNoCC.isDarwin ''
       echo "Setting up macOS keyboard mappings"
       for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
         wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
       done
-    '' + ''
+    '' + lib.optionalString enableDXVK ''
       # Set up overrides to make sure DXVK is being used.
       for dll in dxgi d3d11 mcfgthread-12; do
         wine64 reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f
@@ -106,7 +118,11 @@ let
 
     runtimeInputs = [ coreutils wine64 ];
 
-    text = ''
+    text = lib.optionalString enableD3DMetal ''
+      # Set WINEDLLPATH to allow Wine to find the D3DMetal builtin DLLs and shared dylib.
+      WINEDLLPATH_PREPEND=${d3dmetal}/lib/wine
+      export WINEDLLPATH_PREPEND
+    '' + ''
       # Set paths for the game and its configuration.
       WINEPREFIX="''${XDG_DATA_HOME:-"$HOME/.local/share"}/ffxiv"
       FFXIVCONFIG="''${XDG_CONFIG_HOME:-"$HOME/.config"}/ffxiv"
@@ -126,7 +142,7 @@ let
       FFXIVWINPATH="$WINEPREFIX/dosdevices/f:/FFXIV"
 
       # Enable ESYNC and disable logging
-      WINEDEBUG=-all
+      WINEDEBUG=''${WINEDEBUG:--all}
       WINEESYNC=1
       WINEMSYNC=1
 
