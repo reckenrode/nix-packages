@@ -68,6 +68,22 @@ let
           protocolVersion = 797;
           hash = "sha256-ijM5Z6T/7Ycn8Pz8Y3EgHVIGp8vdgVZ5T4mk9aJPiuo=";
         };
+        "9.6" = {
+          protocolVersion = 799;
+          hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
+        };
+        "9.7" = {
+          protocolVersion = 799;
+          hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
+        };
+        "9.8" = {
+          protocolVersion = 801;
+          hash = "sha256-gM1n9UnQONdSwIekZvyy/+PC2m5X59wefPSqZFCkyS4=";
+        };
+        "9.9" = {
+          protocolVersion = 802;
+          hash = "sha256-XrDdRwUu/B0MkcCI9vBRoa5z/a7QyYFxEBlRY5HeXcw=";
+        };
       }.${wineVersion};
     in
     [
