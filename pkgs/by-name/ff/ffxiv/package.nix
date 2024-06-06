@@ -26,10 +26,6 @@ let
   pname = "ffxiv";
   desktopName = "Final Fantasy XIV (Unofficial)";
 
-  # This is a separate derivation to avoid unnecessary rebuilds that would require downloading
-  # multiple GB unnecessarily.
-  ffxivClient = callPackage ./ffxiv-client.nix { };
-
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
     inherit (ffxiv) wine;
@@ -136,14 +132,14 @@ let
       mkdir -p "$FFXIVWINPATH/game/movie/ffxiv"
 
       if [[ ! -f "$FFXIVWINPATH/game/ffxivgame.ver" ]]; then
-        cp -R "${ffxivClient}/boot" "$FFXIVWINPATH"
-        cp "${ffxivClient}/game/ffxivgame.ver" "$FFXIVWINPATH/game"
+        cp -R "${ffxiv.client}/boot" "$FFXIVWINPATH"
+        cp "${ffxiv.client}/game/ffxivgame.ver" "$FFXIVWINPATH/game"
         find "$FFXIVWINPATH" -type f -exec chmod 644 {} +
         find "$FFXIVWINPATH" -type d -exec chmod 755 {} +
       fi
 
       # The movies are big and won’t change with patches, so don’t copy them.
-      for movie in "${ffxivClient}/game/movie/ffxiv/"*; do
+      for movie in "${ffxiv.client}/game/movie/ffxiv/"*; do
         ln -sfn "$movie" "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")"
       done
 
@@ -162,7 +158,7 @@ let
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   inherit pname;
-  inherit (ffxivClient) version;
+  inherit (finalAttrs.passthru.client) version;
 
   nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.isDarwin desktopToDarwinBundle;
 
@@ -170,7 +166,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dontConfigure = true;
 
   buildPhase = ''
-    wrestool --type=14 -x ${ffxivClient}/boot/ffxivboot64.exe --output=.
+    wrestool --type=14 -x ${finalAttrs.passthru.client}/boot/ffxivboot64.exe --output=.
     icotool -x ffxivboot64.exe_14_103_1041.ico --output=.
 
     local -rA widths=([1]=256 [2]=48 [3]=32 [4]=16)
@@ -221,7 +217,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ln -sv "${finalAttrs.desktopItem}/share/applications" "$out/share/applications"
   '';
 
-  passthru.client = ffxivClient;
+  # This is a separate derivation to avoid unnecessary rebuilds that would require downloading
+  # multiple GB unnecessarily.
+  passthru.client = callPackage ./ffxiv-client.nix { };
+
   passthru.wine = callPackage ./ffxiv-wine.nix {
     inherit (darwin) moltenvk;
     inherit enableDXVK enableD3DMetal;
