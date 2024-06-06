@@ -30,12 +30,16 @@ let
   ffxivClient = callPackage ./ffxiv-client.nix { };
 
   moltenvk = darwin.moltenvk.overrideAttrs (oldAttrs: {
-    patches = oldAttrs.patches ++ [
-      (fetchpatch {
-        name = "ffxiv-flicker.patch";
-        url = "https://github.com/KhronosGroup/MoltenVK/files/9686958/zeroinit.txt";
-        hash = "sha256-aORWU7zPTRKSTVF4I0D8rNthdxoZbioZsNUG0/Dq2go=";
-      })
+    patches = (oldAttrs.patches or [ ]) ++ [
+      (if lib.versionOlder (lib.getVersion darwin.moltenvk) "1.2.9" then
+        fetchpatch {
+          name = "ffxiv-flicker.patch";
+          url = "https://github.com/KhronosGroup/MoltenVK/files/9686958/zeroinit.txt";
+          hash = "sha256-aORWU7zPTRKSTVF4I0D8rNthdxoZbioZsNUG0/Dq2go=";
+        }
+        else
+          ./ffxiv-flicker.patch
+      )
 #     (fetchpatch {
 #       name = "command-storage-optimization.patch";
 #       url = "https://patch-diff.githubusercontent.com/raw/KhronosGroup/MoltenVK/pull/1678.patch";
