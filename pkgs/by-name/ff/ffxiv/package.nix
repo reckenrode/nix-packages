@@ -9,6 +9,7 @@
   desktopToDarwinBundle,
   ffxiv,
   makeDesktopItem,
+  mk-wine-prefix,
   substituteAll,
   writeShellApplication,
   coreutils,
@@ -26,8 +27,7 @@ let
   pname = "ffxiv";
   desktopName = "Final Fantasy XIV (Unofficial)";
 
-  winePrefix = callPackage ./wine-prefix.nix { } {
-    inherit gnused;
+  winePrefix = mk-wine-prefix {
     inherit (ffxiv) wine;
     extras.files = lib.optionalAttrs enableDXVK { "windows/system32" = [ "${lib.getBin dxvk}/x64" ]; };
     extras.buildPhase =

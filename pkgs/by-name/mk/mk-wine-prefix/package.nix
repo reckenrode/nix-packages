@@ -1,4 +1,4 @@
-{ lib, stdenvNoCC }:
+{ lib, gnused, wine64, stdenvNoCC }:
 
 {
   name ? "wine-prefix",
@@ -6,8 +6,7 @@
     files = [ ];
     buildPhase = "";
   },
-  gnused,
-  wine,
+  wine ? wine64,
 }:
 
 let
@@ -30,8 +29,9 @@ in
 stdenvNoCC.mkDerivation {
   inherit name;
 
+  strictDeps = true;
+
   buildInputs = [ wine ];
-  nativeBuildInputs = [ gnused ];
 
   dontUnpack = true;
   dontConfigure = true;
@@ -105,6 +105,8 @@ stdenvNoCC.mkDerivation {
 
       rm -rf prefix/drive_c/users
     '';
+
+  __structuredAttrs = true;
 
   installPhase = ''
     mkdir -p "$out"
