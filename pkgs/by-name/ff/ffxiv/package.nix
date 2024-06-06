@@ -65,7 +65,6 @@ let
           hash = "sha256-ijM5Z6T/7Ycn8Pz8Y3EgHVIGp8vdgVZ5T4mk9aJPiuo=";
         };
       }.${wineVersion};
-      wineVersion = lib.getVersion wine64;
     in
     [
       (fetchurl {
@@ -85,9 +84,18 @@ let
     embedInstallers = true;
     inherit moltenvk;
   };
+  wineVersion = lib.getVersion wine64Staging;
 
-  wine64 = lib.overrideDerivation wine64Staging (super: {
+  wine64 = wine64Staging.overrideAttrs (super: {
     patches = (super.patches or [ ])
+      ++ lib.optionals (stdenv.isDarwin && lib.versionAtLeast wineVersion  "9.1" && lib.versionOlder wineVersion "9.9") [
+        # Causes the axes on PS4 DualShock controllers to be mapped incorrectly, making the game unplayable.
+        (fetchpatch {
+          url = "https://gitlab.winehq.org/wine/wine/-/commit/173ed7e61b5b80ccd4d268e80c5c15f9fb288aa0.patch";
+          hash = "sha256-X/tADAJFX79jlK+EwbWTr3UrMu9qtnPrkIyhjalEXYI=";
+          revert = true;
+        })
+      ]
       ++ protonCompatPatches
       ++ msyncPatch;
 
