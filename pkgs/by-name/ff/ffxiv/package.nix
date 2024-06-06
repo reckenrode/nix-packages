@@ -160,6 +160,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   inherit pname;
   inherit (finalAttrs.passthru.client) version;
 
+  strictDeps = true;
+
   nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.isDarwin desktopToDarwinBundle;
 
   dontUnpack = true;
@@ -225,6 +227,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     inherit (darwin) moltenvk;
     inherit enableDXVK enableD3DMetal;
   };
+
+  __structuredAttrs = true;
 
   meta = {
     description = "Unofficial client for the critically acclaimed MMORPG Final Fantasy XIV. FINAL FANTASY is a registered trademark of Square Enix Holdings Co., Ltd.";
