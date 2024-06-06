@@ -1,23 +1,24 @@
-{ lib
-, stdenvNoCC
-, callPackage
-, fetchpatch
-, fetchurl
-, fetchgit
-, substituteAll
-, desktopToDarwinBundle
-, icoutils
-, makeDesktopItem
-, unzip
-, writeShellApplication
-, coreutils
-, gnused
-, pkgsCross
-, dxvk
-, darwin
-, wine64Packages
-, enableDXVK ? true
-, enableD3DMetal ? false # Currently broken.
+{
+  lib,
+  stdenvNoCC,
+  pkgsCross,
+  callPackage,
+  fetchpatch,
+  fetchgit,
+  fetchurl,
+  desktopToDarwinBundle,
+  makeDesktopItem,
+  substituteAll,
+  writeShellApplication,
+  coreutils,
+  darwin,
+  dxvk,
+  gnused,
+  icoutils,
+  unzip,
+  wine64Packages,
+  enableDXVK ? true,
+  enableD3DMetal ? false, # Currently broken.
 }:
 
 assert enableDXVK -> !enableD3DMetal;
@@ -31,20 +32,21 @@ let
 
   moltenvk = darwin.moltenvk.overrideAttrs (oldAttrs: {
     patches = (oldAttrs.patches or [ ]) ++ [
-      (if lib.versionOlder (lib.getVersion darwin.moltenvk) "1.2.9" then
-        fetchpatch {
-          name = "ffxiv-flicker.patch";
-          url = "https://github.com/KhronosGroup/MoltenVK/files/9686958/zeroinit.txt";
-          hash = "sha256-aORWU7zPTRKSTVF4I0D8rNthdxoZbioZsNUG0/Dq2go=";
-        }
+      (
+        if lib.versionOlder (lib.getVersion darwin.moltenvk) "1.2.9" then
+          fetchpatch {
+            name = "ffxiv-flicker.patch";
+            url = "https://github.com/KhronosGroup/MoltenVK/files/9686958/zeroinit.txt";
+            hash = "sha256-aORWU7zPTRKSTVF4I0D8rNthdxoZbioZsNUG0/Dq2go=";
+          }
         else
           ./ffxiv-flicker.patch
       )
-#     (fetchpatch {
-#       name = "command-storage-optimization.patch";
-#       url = "https://patch-diff.githubusercontent.com/raw/KhronosGroup/MoltenVK/pull/1678.patch";
-#       hash = "sha256-LEQ1B83V6OsePfb3JVU0KH1DsL+RR28YB7A0aJKa+m0=";
-#     })
+      #     (fetchpatch {
+      #       name = "command-storage-optimization.patch";
+      #       url = "https://patch-diff.githubusercontent.com/raw/KhronosGroup/MoltenVK/pull/1678.patch";
+      #       hash = "sha256-LEQ1B83V6OsePfb3JVU0KH1DsL+RR28YB7A0aJKa+m0=";
+      #     })
     ];
   });
 
@@ -63,28 +65,30 @@ let
 
   msyncPatch =
     let
-      patchInfo = {
-        "9.4" = {
-          protocolVersion = 797;
-          hash = "sha256-ijM5Z6T/7Ycn8Pz8Y3EgHVIGp8vdgVZ5T4mk9aJPiuo=";
-        };
-        "9.6" = {
-          protocolVersion = 799;
-          hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
-        };
-        "9.7" = {
-          protocolVersion = 799;
-          hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
-        };
-        "9.8" = {
-          protocolVersion = 801;
-          hash = "sha256-gM1n9UnQONdSwIekZvyy/+PC2m5X59wefPSqZFCkyS4=";
-        };
-        "9.9" = {
-          protocolVersion = 802;
-          hash = "sha256-XrDdRwUu/B0MkcCI9vBRoa5z/a7QyYFxEBlRY5HeXcw=";
-        };
-      }.${wineVersion};
+      patchInfo =
+        {
+          "9.4" = {
+            protocolVersion = 797;
+            hash = "sha256-ijM5Z6T/7Ycn8Pz8Y3EgHVIGp8vdgVZ5T4mk9aJPiuo=";
+          };
+          "9.6" = {
+            protocolVersion = 799;
+            hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
+          };
+          "9.7" = {
+            protocolVersion = 799;
+            hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
+          };
+          "9.8" = {
+            protocolVersion = 801;
+            hash = "sha256-gM1n9UnQONdSwIekZvyy/+PC2m5X59wefPSqZFCkyS4=";
+          };
+          "9.9" = {
+            protocolVersion = 802;
+            hash = "sha256-XrDdRwUu/B0MkcCI9vBRoa5z/a7QyYFxEBlRY5HeXcw=";
+          };
+        }
+        .${wineVersion};
     in
     [
       (fetchurl {
@@ -107,50 +111,59 @@ let
   wineVersion = lib.getVersion wine64Staging;
 
   wine64 = wine64Staging.overrideAttrs (super: {
-    patches = (super.patches or [ ])
-      ++ lib.optionals (stdenv.isDarwin && lib.versionAtLeast wineVersion  "9.1" && lib.versionOlder wineVersion "9.9") [
-        # Causes the axes on PS4 DualShock controllers to be mapped incorrectly, making the game unplayable.
-        (fetchpatch {
-          url = "https://gitlab.winehq.org/wine/wine/-/commit/173ed7e61b5b80ccd4d268e80c5c15f9fb288aa0.patch";
-          hash = "sha256-X/tADAJFX79jlK+EwbWTr3UrMu9qtnPrkIyhjalEXYI=";
-          revert = true;
-        })
-      ]
+    patches =
+      (super.patches or [ ])
+      ++
+        lib.optionals
+          (stdenv.isDarwin && lib.versionAtLeast wineVersion "9.1" && lib.versionOlder wineVersion "9.9")
+          [
+            # Causes the axes on PS4 DualShock controllers to be mapped incorrectly, making the game unplayable.
+            (fetchpatch {
+              url = "https://gitlab.winehq.org/wine/wine/-/commit/173ed7e61b5b80ccd4d268e80c5c15f9fb288aa0.patch";
+              hash = "sha256-X/tADAJFX79jlK+EwbWTr3UrMu9qtnPrkIyhjalEXYI=";
+              revert = true;
+            })
+          ]
       ++ protonCompatPatches
       ++ msyncPatch;
 
-    postUnpack = (super.postUnpack or "") + ''
-      for dir in mshtml jscript; do
-        rm -rf "$sourceRoot/dlls/$dir"
-        cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
-        chmod -R u+w "$sourceRoot/dlls/$dir"
-      done
-    '';
+    postUnpack =
+      (super.postUnpack or "")
+      + ''
+        for dir in mshtml jscript; do
+          rm -rf "$sourceRoot/dlls/$dir"
+          cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
+          chmod -R u+w "$sourceRoot/dlls/$dir"
+        done
+      '';
   });
 
   winePrefix = callPackage ./wine-prefix.nix { } {
     inherit gnused;
     wine = wine64;
-    extras.files = lib.optionalAttrs enableDXVK {
-      "windows/system32" = [ "${lib.getBin dxvk}/x64" ];
-    };
-    extras.buildPhase = lib.optionalString stdenvNoCC.isDarwin ''
-      echo "Setting up macOS keyboard mappings"
-      for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
-        wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
-      done
-    '' + lib.optionalString enableDXVK ''
-      # Set up overrides to make sure DXVK is being used.
-      for dll in dxgi d3d11 mcfgthread-12; do
-        wine64 reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f
-      done
-    '';
+    extras.files = lib.optionalAttrs enableDXVK { "windows/system32" = [ "${lib.getBin dxvk}/x64" ]; };
+    extras.buildPhase =
+      lib.optionalString stdenvNoCC.isDarwin ''
+        echo "Setting up macOS keyboard mappings"
+        for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
+          wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
+        done
+      ''
+      + lib.optionalString enableDXVK ''
+        # Set up overrides to make sure DXVK is being used.
+        for dll in dxgi d3d11 mcfgthread-12; do
+          wine64 reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f
+        done
+      '';
   };
 
   executable = writeShellApplication {
     name = pname;
 
-    runtimeInputs = [ coreutils wine64 ];
+    runtimeInputs = [
+      coreutils
+      wine64
+    ];
 
     text = ''
       # Set paths for the game and its configuration.
@@ -259,8 +272,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   inherit pname;
   inherit (ffxivClient) version;
 
-  nativeBuildInputs = [ icoutils ]
-    ++ lib.optional stdenvNoCC.isDarwin desktopToDarwinBundle;
+  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.isDarwin desktopToDarwinBundle;
 
   dontUnpack = true;
   dontConfigure = true;
@@ -296,7 +308,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     type = "Application";
     comment = finalAttrs.meta.description;
     inherit desktopName;
-    categories = [ "Game" "RolePlaying" ];
+    categories = [
+      "Game"
+      "RolePlaying"
+    ];
     prefersNonDefaultGPU = true;
     startupNotify = false;
     extraConfig = {

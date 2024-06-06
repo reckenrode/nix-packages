@@ -1,9 +1,10 @@
-{ lib
-, stdenvNoCC
-, fetchurl
-, writeScript
-, unzip
-, wine64Packages
+{
+  lib,
+  stdenvNoCC,
+  fetchurl,
+  writeScript,
+  unzip,
+  wine64Packages,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
