@@ -1,0 +1,103 @@
+From d97d358f815551e9c94eb812460f757b3c46d316 Mon Sep 17 00:00:00 2001
+From: Randy Eckenrode <randy@largeandhighquality.com>
+Date: Thu, 6 Jun 2024 21:51:49 -0400
+Subject: [PATCH] nixpkgs compatibility patches
+
+---
+ ffxiv-benchmark.py | 35 ++++++++++++-----------------------
+ 1 file changed, 12 insertions(+), 23 deletions(-)
+
+diff --git a/ffxiv-benchmark.py b/ffxiv-benchmark.py
+index f5fb4d0..3315c59 100755
+--- a/ffxiv-benchmark.py
++++ b/ffxiv-benchmark.py
+@@ -20,7 +20,7 @@ class FFXIVPreset:
+ 
+ class FFXIVBenchmarkConfig:
+   def __init__(self):
+-    self.cfg_path = os.getenv("XDG_CONFIG_HOME", os.getenv("HOME") + "/.config") + "/ffxiv_benchmark"
++    self.cfg_path = os.getenv("XDG_CONFIG_HOME", os.getenv("HOME") + "/.config") + "/ffxiv_benchmark/ffxiv-benchmark-launcher.ini"
+     self.cfg = ConfigParser()
+ 
+     self.cfg["benchmark"] = {
+@@ -38,9 +38,7 @@ class FFXIVBenchmarkConfig:
+           break
+ 
+     self.cfg['wine'] = {
+-      "path"                  : wine_path,
+-      "prefix"                : os.getenv("HOME") + "/.wine",
+-      "environment"           : "WINEESYNC=1 WINEFSYNC=1 DXVK_LOG_LEVEL=none DXVK_HUD=fps,gpuload" }
++      "environment"           : "@default-environment@" }
+ 
+     self.cfg['graphics'] = {
+       "display_mode"          : "0",
+@@ -89,38 +87,29 @@ class FFXIVBenchmarkConfig:
+ class FFXIVBenchmarkLauncher(QApplication):
+   def __init__(self, args):
+     super(FFXIVBenchmarkLauncher, self).__init__(args)
+-    self.text_benchmark_directory = QLineEdit()
+ 
+-    self.btn_benchmark_directory = QPushButton("Find")
+-    self.btn_benchmark_directory.clicked.connect(self.find_benchmark)
++    self.benchmark_path = args[1]
++
++    self.text_benchmark_directory = QLabel()
+ 
+     layout_grid_launch_benchmark = QGridLayout()
+     layout_grid_launch_benchmark.addWidget(QLabel("Directory:"), 0, 0)
+     layout_grid_launch_benchmark.addWidget(self.text_benchmark_directory, 0, 1)
+-    layout_grid_launch_benchmark.addWidget(self.btn_benchmark_directory, 0, 2)
+ 
+     group_launch_benchmark = QGroupBox("Benchmark")
+     group_launch_benchmark.setLayout(layout_grid_launch_benchmark)
+ 
+-    self.text_wine_executable_path = QLineEdit()
+-    self.text_wine_prefix_path = QLineEdit()
++    self.text_wine_executable_path = QLabel()
++    self.text_wine_prefix_path = QLabel()
+     self.text_wine_environment = QLineEdit()
+ 
+-    self.btn_wine_executable_path = QPushButton("Find")
+-    self.btn_wine_executable_path.clicked.connect(self.find_wine)
+-
+-    self.btn_wine_prefix_path = QPushButton("Find")
+-    self.btn_wine_prefix_path.clicked.connect(self.find_wine_prefix)
+-
+     layout_grid_launch_wine = QGridLayout()
+     layout_grid_launch_wine.addWidget(QLabel("Executable:"), 0, 0)
+     layout_grid_launch_wine.addWidget(self.text_wine_executable_path, 0, 1)
+-    layout_grid_launch_wine.addWidget(self.btn_wine_executable_path, 0, 2)
+     layout_grid_launch_wine.addWidget(QLabel("Prefix:"), 1, 0)
+     layout_grid_launch_wine.addWidget(self.text_wine_prefix_path, 1, 1)
+-    layout_grid_launch_wine.addWidget(self.btn_wine_prefix_path, 1, 2)
+     layout_grid_launch_wine.addWidget(QLabel("Environment:"), 2, 0)
+-    layout_grid_launch_wine.addWidget(self.text_wine_environment, 2, 1, 1, 2)
++    layout_grid_launch_wine.addWidget(self.text_wine_environment, 2, 1)
+ 
+     group_launch_wine = QGroupBox("Wine")
+     group_launch_wine.setLayout(layout_grid_launch_wine)
+@@ -474,9 +463,9 @@ class FFXIVBenchmarkLauncher(QApplication):
+     self.aboutToQuit.connect(self.on_quit)
+ 
+   def applyConfig(self, cfg):
+-    self.text_benchmark_directory.setText(cfg.get("benchmark", "path"))
+-    self.text_wine_executable_path.setText(cfg.get("wine", "path"))
+-    self.text_wine_prefix_path.setText(cfg.get("wine", "prefix"))
++    self.text_benchmark_directory.setText(self.benchmark_path)
++    self.text_wine_executable_path.setText("@wine@")
++    self.text_wine_prefix_path.setText(os.getenv("WINEPREFIX"))
+     self.text_wine_environment.setText(cfg.get("wine", "environment"))
+     self.cb_fullscreen_mode.setCurrentIndex(cfg.getint("graphics", "display_mode"))
+     self.text_res_x.setText(str(cfg.getint("graphics", "display_res_x")))
+@@ -725,7 +714,7 @@ class FFXIVBenchmarkLauncher(QApplication):
+     process_env = copy.deepcopy(os.environ)
+     process_env["WINEPREFIX"] = wine_prefix_path
+ 
+-    for e in self.text_wine_environment.text().split():
++    for e in (self.text_wine_environment.text()).split():
+       v = e.split("=", 1)
+       if len(v) == 2:
+         process_env[v[0]] = v[1]
+-- 
+2.45.1
+
