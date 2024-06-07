@@ -31,7 +31,7 @@ stdenvNoCC.mkDerivation {
 
   strictDeps = true;
 
-  buildInputs = [ wine ];
+  nativeBuildInputs = [ wine ];
 
   dontUnpack = true;
   dontConfigure = true;
