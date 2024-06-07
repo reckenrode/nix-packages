@@ -69,6 +69,10 @@ let
             protocolVersion = 802;
             hash = "sha256-XrDdRwUu/B0MkcCI9vBRoa5z/a7QyYFxEBlRY5HeXcw=";
           };
+          "9.10" = {
+            protocolVersion = 804;
+            hash = "sha256-W4gLKiPwaKWDiH340ar/xoG4MrC+5QWfR11e2bUxzTA=";
+          };
         }
         .${wineVersion};
     in
