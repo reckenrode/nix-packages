@@ -45,50 +45,20 @@ let
   };
   protonCompatPatches = [ ./test.h-compat.patch ];
 
-  msyncPatch =
-    let
-      patchInfo =
-        {
-          "9.4" = {
-            protocolVersion = 797;
-            hash = "sha256-ijM5Z6T/7Ycn8Pz8Y3EgHVIGp8vdgVZ5T4mk9aJPiuo=";
-          };
-          "9.6" = {
-            protocolVersion = 799;
-            hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
-          };
-          "9.7" = {
-            protocolVersion = 799;
-            hash = "sha256-srGDIvD4577plfgcYWkc1gbuZy03dTqwVmcjL8sA0lc=";
-          };
-          "9.8" = {
-            protocolVersion = 801;
-            hash = "sha256-gM1n9UnQONdSwIekZvyy/+PC2m5X59wefPSqZFCkyS4=";
-          };
-          "9.9" = {
-            protocolVersion = 802;
-            hash = "sha256-XrDdRwUu/B0MkcCI9vBRoa5z/a7QyYFxEBlRY5HeXcw=";
-          };
-          "9.10" = {
-            protocolVersion = 804;
-            hash = "sha256-W4gLKiPwaKWDiH340ar/xoG4MrC+5QWfR11e2bUxzTA=";
-          };
-        }
-        .${wineVersion};
-    in
-    [
-      (fetchurl {
-        name = "msync-staging-${wineVersion}.patch";
-        url = "https://github.com/marzent/wine-msync/raw/4956fb93528d728a9941642b24400b7ebf000465/msync-staging.patch";
-        inherit (patchInfo) hash;
-        postFetch = ''
-          sed -E \
-            -e 's/((-|\+)#define SERVER_PROTOCOL_VERSION) 787/\1 ${toString patchInfo.protocolVersion}/' \
-            -e '/\+\+\+ b\/dlls\/ntdll\/unix\/sync\.c/,/---/{/118,7/,+7d}' \
-            -i "$out"
-        '';
-      })
-    ];
+  msyncPatch = [
+    (fetchurl {
+      name = "msync-staging-${wineVersion}.patch";
+      url = "https://github.com/marzent/wine-msync/raw/4956fb93528d728a9941642b24400b7ebf000465/msync-staging.patch";
+      postFetch = ''
+        sed -E \
+          -e '/-#define SERVER_PROTOCOL_VERSION/,+4d' \
+          -e 's/@@ -6629,11 \+6725,16 @@/@@ -6629,7 +6725,12 @@/' \
+          -e '/\+\+\+ b\/dlls\/ntdll\/unix\/sync\.c/,/---/{/118,7/,+7d}' \
+          -i "$out"
+      '';
+      hash = "sha256-byjcE9RNE3VA0+l8NCYjSNSsVOxzSXoTF6ioxn/PGJE=";
+    })
+  ];
 
   wine64Staging = wine64Packages.staging.override {
     embedInstallers = true;
