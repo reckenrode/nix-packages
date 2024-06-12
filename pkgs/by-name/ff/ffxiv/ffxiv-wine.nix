@@ -4,6 +4,8 @@
   fetchgit,
   fetchpatch,
   fetchurl,
+  requireFile,
+  d3dmetal,
   moltenvk,
   wine64Packages,
   enableDXVK,
@@ -60,11 +62,24 @@ let
     })
   ];
 
-  wine64Staging = wine64Packages.staging.override {
-    embedInstallers = true;
-    gstreamerSupport = true;
-    moltenvk = moltenvk';
-  };
+  wine64Staging = wine64Packages.staging.override (
+    {
+      embedInstallers = true;
+      gstreamerSupport = true;
+    }
+    // lib.optionalAttrs enableDXVK { moltenvk = moltenvk'; }
+    // lib.optionalAttrs enableD3DMetal {
+      #    d3dmetal = d3dmetal.overrideAttrs (finalAttrs: prevAttrs: {
+      #      version = "2.0";
+      #      src = requireFile {
+      #        name = "Evaluation_environment_for_Windows_games_${finalAttrs.version}_beta_1.dmg";
+      #        hash = "sha256-oYC9UoDDJM6SEkLKXzCYrfRNmw7ZOZk/eRjiEWlHFA0=";
+      #        url = "https://developer.apple.com/download/all/?q=game%20porting%20toolkit";
+      #      };
+      #    });
+      d3dmetalSupport = true;
+    }
+  );
   wineVersion = lib.getVersion wine64Staging;
 in
 wine64Staging.overrideAttrs (super: {

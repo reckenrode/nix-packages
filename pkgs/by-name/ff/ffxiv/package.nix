@@ -20,7 +20,7 @@
   unzip,
   wine64Packages,
   enableDXVK ? true,
-  enableD3DMetal ? false, # Currently broken.
+  enableD3DMetal ? false, # Currently broken
 }:
 
 let
