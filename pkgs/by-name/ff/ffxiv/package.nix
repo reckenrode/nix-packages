@@ -138,9 +138,14 @@ let
         find "$FFXIVWINPATH" -type d -exec chmod 755 {} +
       fi
 
-      # The movies are big and won’t change with patches, so don’t copy them.
+      # Dawntrail patches the movies, so copy them the first time.
       for movie in "${ffxiv.client}/game/movie/ffxiv/"*; do
-        ln -sfn "$movie" "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")"
+        if [[ -L "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")" ]]; then
+          rm "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")"
+          install -m644 "$movie" "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")"
+        elif [[ ! -e "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")" ]]; then
+          install -m644 "$movie" "$FFXIVWINPATH/game/movie/ffxiv/$(basename "$movie")"
+        fi
       done
 
       # Set up XDG-compliant configuration for the game.
