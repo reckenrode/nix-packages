@@ -29,6 +29,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     bootstrap_path='Contents/SharedSupport/finalfantasyxiv/support/published_Final_Fantasy/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn'
     cp -Rv "$bootstrap_path/boot" "$bootstrap_path/game" "$out"
     rm -v "$out/boot"/*cache*
+    rm -rv "$out/game/movie"
   '';
 
   # The hash is going to be the same regardless of system, so hardcode to allow the update script
