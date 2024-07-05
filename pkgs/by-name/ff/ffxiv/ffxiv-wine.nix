@@ -5,7 +5,6 @@
   fetchpatch,
   fetchurl,
   requireFile,
-  d3dmetal,
   moltenvk,
   wine64Packages,
   enableDXVK,
