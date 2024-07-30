@@ -47,7 +47,7 @@ let
   protonCompatPatches = [ ./test.h-compat.patch ];
 
   msyncPatch =
-    if lib.versionAtLeast "9.12" (lib.getVersion wine64Staging) then
+    if lib.versionAtLeast (lib.getVersion wine64Staging) "9.12" then
       [ ./msync-staging-9.12.patch ]
     else
       [
