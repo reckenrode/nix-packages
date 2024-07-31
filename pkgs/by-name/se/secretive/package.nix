@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: MIT
 
-{ lib
-, stdenvNoCC
-, fetchurl
-, unzip
-, gitUpdater
+{
+  lib,
+  stdenvNoCC,
+  fetchurl,
+  unzip,
+  gitUpdater,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {

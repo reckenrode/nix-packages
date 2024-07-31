@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 
-{ lib
-, fetchurl
-, stdenvNoCC
-, unzip
+{
+  lib,
+  fetchurl,
+  stdenvNoCC,
+  unzip,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -11,7 +12,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   version = "4.25";
 
   src = fetchurl {
-    url = "https://daisydiskapp.com/download/DaisyDisk_${lib.replaceStrings ["."] ["_"] finalAttrs.version}.zip";
+    url = "https://daisydiskapp.com/download/DaisyDisk_${
+      lib.replaceStrings [ "." ] [ "_" ] finalAttrs.version
+    }.zip";
     hash = "sha256-+e2Xd2f9oDxZ5D1y8S5VQyIugnmWFAgkQkh0nwW3C8A=";
   };
 

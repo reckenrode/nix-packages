@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 
-{ lib
-, fetchurl
-, stdenvNoCC
-, unzip
+{
+  lib,
+  fetchurl,
+  stdenvNoCC,
+  unzip,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {

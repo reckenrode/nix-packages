@@ -4,16 +4,32 @@ lib: pkgs:
 
 let
   inherit (builtins) readDir;
-  inherit (lib) attrNames concatMap elemAt filter filterAttrs listToAttrs pathExists substring toLower foldl';
+  inherit (lib)
+    attrNames
+    concatMap
+    elemAt
+    filter
+    filterAttrs
+    listToAttrs
+    pathExists
+    substring
+    toLower
+    foldl'
+    ;
   inherit (lib.trivial) pipe;
 
-  enumeratePackages = basePath:
+  enumeratePackages =
+    basePath:
     let
       childPaths = path: attrNames (filterAttrs (_: type: type == "directory") (readDir path));
 
       isShardedCorrectly = path: elemAt path 0 == toLower (substring 0 2 (elemAt path 1));
 
-      mkPackagePath = shard: package: [ shard package "package.nix" ];
+      mkPackagePath = shard: package: [
+        shard
+        package
+        "package.nix"
+      ];
 
       packagesInShard = shard: map (mkPackagePath shard) (childPaths (basePath + "/${shard}"));
 

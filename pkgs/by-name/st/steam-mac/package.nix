@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 
-{ lib
-, fetchurl
-, stdenvNoCC
-, undmg
+{
+  lib,
+  fetchurl,
+  stdenvNoCC,
+  undmg,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -11,7 +12,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   version = "2023.03.05+23.33.30";
 
   src = fetchurl {
-    url = "https://web.archive.org/web/${lib.replaceStrings [ "." "+" ] [ "" "" ] finalAttrs.version}/https://cdn.cloudflare.steamstatic.com/client/installer/steam.dmg";
+    url = "https://web.archive.org/web/${
+      lib.replaceStrings
+        [
+          "."
+          "+"
+        ]
+        [
+          ""
+          ""
+        ]
+        finalAttrs.version
+    }/https://cdn.cloudflare.steamstatic.com/client/installer/steam.dmg";
     hash = "sha256-X1VnDJGv02A6ihDYKhedqQdE/KmPAQZkeJHudA6oS6M=";
   };
 

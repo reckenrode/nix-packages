@@ -1,4 +1,9 @@
-{ lib, gnused, wine64, stdenvNoCC }:
+{
+  lib,
+  gnused,
+  wine64,
+  stdenvNoCC,
+}:
 
 {
   name ? "wine-prefix",

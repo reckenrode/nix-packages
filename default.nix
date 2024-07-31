@@ -3,8 +3,4 @@
 let
   flakePackages = (builtins.getFlake (toString ./.)).outputs.packages;
 in
-import <nixpkgs> {
-  overlays =  [
-    (self: super: flakePackages.${builtins.currentSystem})
-  ];
-}
+import <nixpkgs> { overlays = [ (self: super: flakePackages.${builtins.currentSystem}) ]; }
