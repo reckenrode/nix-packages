@@ -47,7 +47,24 @@ let
   protonCompatPatches = [ ./test.h-compat.patch ];
 
   msyncPatch =
-    if lib.versionAtLeast (lib.getVersion wine64Staging) "9.13" then
+    if lib.versionAtLeast (lib.getVersion wine64Staging) "9.15" then
+      [
+        (fetchurl {
+          name = "msync-staging-${wineVersion}.patch";
+          url = "https://github.com/marzent/wine-msync/raw/be7f3e2ff40670018cd7aa9042bad487fa7a83ec/msync-staging.patch";
+          postFetch = ''
+            sed -E \
+              -e '/-#define SERVER_PROTOCOL_VERSION/,+4d' \
+              -e 's/@@ -6721,11 \+6817,16 @@/@@ -6721,7 +6817,12 @@/' \
+              -e '/\+\+\+ b\/dlls\/ntdll\/unix\/sync\.c/,/---/{/118,7/,+7d}' \
+              -i "$out"
+          '';
+          hash = "sha256-X7hBKk5tG2ozGaYDGyA6jHEHpWJqO/WiOOuEkWuRl1g=";
+        })
+      ] ++ lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "9.20") [
+        ./msync-staging-9.20.patch
+      ]
+    else if lib.versionAtLeast (lib.getVersion wine64Staging) "9.13" then
       [ ./msync-staging-9.13.patch ]
     else if lib.versionAtLeast (lib.getVersion wine64Staging) "9.12" then
       [ ./msync-staging-9.12.patch ]
