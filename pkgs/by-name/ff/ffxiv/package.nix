@@ -28,6 +28,8 @@ let
         for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
           wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
         done
+        echo "Enabling Retina support for high resolutions"
+        wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v RetinaMode /d Y /f
       ''
       + lib.optionalString enableDXVK ''
         # Set up overrides to make sure DXVK is being used.
