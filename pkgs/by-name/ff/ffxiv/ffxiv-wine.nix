@@ -46,43 +46,9 @@ let
   };
   protonCompatPatches = [ ./test.h-compat.patch ];
 
-  msyncPatch =
-    if lib.versionAtLeast (lib.getVersion wine64Staging) "9.15" then
-      [
-        (fetchurl {
-          name = "msync-staging-${wineVersion}.patch";
-          url = "https://github.com/marzent/wine-msync/raw/be7f3e2ff40670018cd7aa9042bad487fa7a83ec/msync-staging.patch";
-          postFetch = ''
-            sed -E \
-              -e '/-#define SERVER_PROTOCOL_VERSION/,+4d' \
-              -e 's/@@ -6721,11 \+6817,16 @@/@@ -6721,7 +6817,12 @@/' \
-              -e '/\+\+\+ b\/dlls\/ntdll\/unix\/sync\.c/,/---/{/118,7/,+7d}' \
-              -i "$out"
-          '';
-          hash = "sha256-X7hBKk5tG2ozGaYDGyA6jHEHpWJqO/WiOOuEkWuRl1g=";
-        })
-      ] ++ lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "9.20") [
-        ./msync-staging-9.20.patch
-      ]
-    else if lib.versionAtLeast (lib.getVersion wine64Staging) "9.13" then
-      [ ./msync-staging-9.13.patch ]
-    else if lib.versionAtLeast (lib.getVersion wine64Staging) "9.12" then
-      [ ./msync-staging-9.12.patch ]
-    else
-      [
-        (fetchurl {
-          name = "msync-staging-${wineVersion}.patch";
-          url = "https://github.com/marzent/wine-msync/raw/4956fb93528d728a9941642b24400b7ebf000465/msync-staging.patch";
-          postFetch = ''
-            sed -E \
-              -e '/-#define SERVER_PROTOCOL_VERSION/,+4d' \
-              -e 's/@@ -6629,11 \+6725,16 @@/@@ -6629,7 +6725,12 @@/' \
-              -e '/\+\+\+ b\/dlls\/ntdll\/unix\/sync\.c/,/---/{/118,7/,+7d}' \
-              -i "$out"
-          '';
-          hash = "sha256-byjcE9RNE3VA0+l8NCYjSNSsVOxzSXoTF6ioxn/PGJE=";
-        })
-      ];
+  msyncPatch = lib.optionalAttrs (lib.versionAtLeast (lib.getVersion wine64Staging) "10") [
+    ./msync-staging-10.0-rc5.patch
+  ];
 
   wine64Staging = wine64Packages.staging.override (
     {
