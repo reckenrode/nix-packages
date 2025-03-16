@@ -55,7 +55,7 @@ stdenvNoCC.mkDerivation {
 
       mkdir -p "$WINEPREFIX"
 
-      wineboot --init
+      wineboot --init || true
       ${lib.escapeShellArg wineName} msiexec /i ${wine}/share/wine/gecko/wine-gecko-*-x86_64.msi
 
       # Remove impurities from `system.reg` and `user.reg`
