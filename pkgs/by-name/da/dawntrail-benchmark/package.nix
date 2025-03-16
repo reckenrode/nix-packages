@@ -215,7 +215,9 @@ stdenvNoCC.mkDerivation {
 
   strictDeps = true;
 
-  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.hostPlatform.isDarwin desktopToDarwinBundle;
+  nativeBuildInputs = [
+    icoutils
+  ] ++ lib.optional stdenvNoCC.hostPlatform.isDarwin desktopToDarwinBundle;
 
   dontConfigure = true;
 

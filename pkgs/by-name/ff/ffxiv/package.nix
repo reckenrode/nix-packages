@@ -48,105 +48,111 @@ let
       ffxiv.wine
     ];
 
-    text = ''
-      # Set paths for the game and its configuration.
-      WINEPREFIX="''${XDG_DATA_HOME:-"$HOME/.local/share"}/ffxiv"
-      FFXIVCONFIG="''${XDG_CONFIG_HOME:-"$HOME/.config"}/ffxiv"
+    text =
+      ''
+        # Set paths for the game and its configuration.
+        WINEPREFIX="''${XDG_DATA_HOME:-"$HOME/.local/share"}/ffxiv"
+        FFXIVCONFIG="''${XDG_CONFIG_HOME:-"$HOME/.config"}/ffxiv"
 
-      DXVK_CONFIG_FILE=$FFXIVCONFIG/dxvk.conf
-      DXVK_LOG_PATH="''${XDG_STATE_HOME:-"$HOME/.local/state"}/ffxiv"
-      DXVK_STATE_CACHE_PATH="''${XDG_CACHE_HOME:-"$HOME/.cache"}/ffxiv"
+        DXVK_CONFIG_FILE=$FFXIVCONFIG/dxvk.conf
+        DXVK_LOG_PATH="''${XDG_STATE_HOME:-"$HOME/.local/state"}/ffxiv"
+        DXVK_STATE_CACHE_PATH="''${XDG_CACHE_HOME:-"$HOME/.cache"}/ffxiv"
 
-      mkdir -p "$DXVK_LOG_PATH" "$DXVK_STATE_CACHE_PATH"
-      # Transform the log and state cache paths to a Windows-style path
-      DXVK_CONFIG_FILE="z:''${DXVK_CONFIG_FILE//\//\\}"
-      DXVK_LOG_PATH="z:''${DXVK_LOG_PATH//\//\\}"
-      DXVK_STATE_CACHE_PATH="z:''${DXVK_STATE_CACHE_PATH//\//\\}"
+        mkdir -p "$DXVK_LOG_PATH" "$DXVK_STATE_CACHE_PATH"
+        # Transform the log and state cache paths to a Windows-style path
+        DXVK_CONFIG_FILE="z:''${DXVK_CONFIG_FILE//\//\\}"
+        DXVK_LOG_PATH="z:''${DXVK_LOG_PATH//\//\\}"
+        DXVK_STATE_CACHE_PATH="z:''${DXVK_STATE_CACHE_PATH//\//\\}"
 
-      WINEDOCUMENTS="$WINEPREFIX/dosdevices/c:/users/$(whoami)/Documents"
-      FFXIVWINCONFIG="$WINEDOCUMENTS/My Games/FINAL FANTASY XIV - A Realm Reborn"
-      FFXIVWINPATH="$WINEPREFIX/dosdevices/f:/FFXIV"
+        WINEDOCUMENTS="$WINEPREFIX/dosdevices/c:/users/$(whoami)/Documents"
+        FFXIVWINCONFIG="$WINEDOCUMENTS/My Games/FINAL FANTASY XIV - A Realm Reborn"
+        FFXIVWINPATH="$WINEPREFIX/dosdevices/f:/FFXIV"
 
-      # Enable ESYNC and disable logging
-      WINEDEBUG=''${WINEDEBUG:--all}
-      WINEESYNC=1
-      WINEMSYNC=1
+        # Enable ESYNC and disable logging
+        WINEDEBUG=''${WINEDEBUG:--all}
+        WINEESYNC=1
+        WINEMSYNC=1
+      ''
+      + lib.optionalString enableDXVK ''
 
-      # Darwin MoltenVK compatibility settings
-      if [[ "$(${coreutils}/bin/uname -s)" = "Darwin" ]]; then
-        MVK_CONFIG_LOG_LEVEL=0
-        MVK_CONFIG_RESUME_LOST_DEVICE=1
-        MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE=1
-        MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0
+        # Darwin MoltenVK compatibility settings
+        if [[ "$(${coreutils}/bin/uname -s)" = "Darwin" ]]; then
+          MVK_CONFIG_LOG_LEVEL=0
+          MVK_CONFIG_RESUME_LOST_DEVICE=1
+          MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE=1
+          MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0
 
-
-        # Detect whether FFXIV is running on Apple Silicon
-        if /usr/bin/arch -arch arm64 -c /bin/echo &> /dev/null; then
-          # Enable Metal fences on Apple GPUs for better performance.
-          MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE=0
-        else
-          MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE=1 # Required by DXVK on Intel and AMD GPUs.
+          # Detect whether FFXIV is running on Apple Silicon
+          if /usr/bin/arch -arch arm64 -c /bin/echo &> /dev/null; then
+            # Enable Metal fences on Apple GPUs for better performance.
+            MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE=0
+          else
+            MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE=1 # Required by DXVK on Intel and AMD GPUs.
+          fi
+          export MVK_CONFIG_LOG_LEVEL \
+            MVK_CONFIG_RESUME_LOST_DEVICE \
+            MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE \
+            MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE \
+            MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS
         fi
-        export MVK_CONFIG_RESUME_LOST_DEVICE \
-          MVK_CONFIG_VK_SEMAPHORE_SUPPORT_STYLE MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE \
-          MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS
-      fi
 
-      export WINEPREFIX MVK_CONFIG_LOG_LEVEL WINEDEBUG WINEESYNC WINEMSYNC \
-        DXVK_CONFIG_FILE DXVK_LOG_PATH DXVK_STATE_CACHE_PATH
+        export DXVK_CONFIG_FILE DXVK_LOG_PATH DXVK_STATE_CACHE_PATH
+      ''
+      + ''
+        export WINEPREFIX WINEDEBUG WINEESYNC WINEMSYNC
 
-      mkdir -p "$WINEPREFIX/dosdevices" "$WINEPREFIX/drive_c" "$WINEPREFIX/drive_f"
-      ln -sfn "$WINEPREFIX/drive_c" "$WINEPREFIX/dosdevices/c:"
-      ln -sfn "$WINEPREFIX/drive_f" "$WINEPREFIX/dosdevices/f:"
+        mkdir -p "$WINEPREFIX/dosdevices" "$WINEPREFIX/drive_c" "$WINEPREFIX/drive_f"
+        ln -sfn "$WINEPREFIX/drive_c" "$WINEPREFIX/dosdevices/c:"
+        ln -sfn "$WINEPREFIX/drive_f" "$WINEPREFIX/dosdevices/f:"
 
-      for folder in "${winePrefix}/drive_c"/*; do
-        ln -sfn "$folder" "$WINEPREFIX/drive_c"
-      done
+        for folder in "${winePrefix}/drive_c"/*; do
+          ln -sfn "$folder" "$WINEPREFIX/drive_c"
+        done
 
-      ln -sfn / "$WINEPREFIX/dosdevices/z:"
+        ln -sfn / "$WINEPREFIX/dosdevices/z:"
 
-      # Avoid copying the default registry files unless they have changed.
-      # Only copying them when necessary improves startup performance.
-      for regfile in user.reg system.reg; do
-        registryFile="${winePrefix}/$regfile"
-        registryDigest="$WINEPREFIX/$regfile.digest"
-        if ! sha256sum -c <(printf "%s  %s" "$(cat "$registryDigest")" "$registryFile") > /dev/null; then
-          cp "$registryFile" "$WINEPREFIX"
-          sha256sum "$registryFile" | cut -d' ' -f1 > "$registryDigest"
+        # Avoid copying the default registry files unless they have changed.
+        # Only copying them when necessary improves startup performance.
+        for regfile in user.reg system.reg; do
+          registryFile="${winePrefix}/$regfile"
+          registryDigest="$WINEPREFIX/$regfile.digest"
+          if ! sha256sum -c <(printf "%s  %s" "$(cat "$registryDigest")" "$registryFile") > /dev/null; then
+            cp "$registryFile" "$WINEPREFIX"
+            sha256sum "$registryFile" | cut -d' ' -f1 > "$registryDigest"
+          fi
+        done
+
+        # Avoid spurious TCC warnings on Darwin.
+        for path in Desktop Documents Downloads Music Pictures Videos AppData/Roaming/Microsoft/Windows/Templates; do
+          folder="$WINEPREFIX/dosdevices/c:/users/$(whoami)/$path"
+          if [[ -L "$folder" ]]; then
+            rm "$folder"
+          fi
+          if [[ ! -d "$folder" ]]; then
+            mkdir -p "$folder"
+          fi
+        done
+
+        mkdir -p "$FFXIVWINPATH/game/movie/ffxiv"
+
+        if [[ ! -f "$FFXIVWINPATH/game/ffxivgame.ver" ]]; then
+          cp -R "${ffxiv.client}/boot" "$FFXIVWINPATH"
+          cp "${ffxiv.client}/game/ffxivgame.ver" "$FFXIVWINPATH/game"
+          find "$FFXIVWINPATH" -type f -exec chmod 644 {} +
+          find "$FFXIVWINPATH" -type d -exec chmod 755 {} +
         fi
-      done
 
-      # Avoid spurious TCC warnings on Darwin.
-      for path in Desktop Documents Downloads Music Pictures Videos AppData/Roaming/Microsoft/Windows/Templates; do
-        folder="$WINEPREFIX/dosdevices/c:/users/$(whoami)/$path"
-        if [[ -L "$folder" ]]; then
-          rm "$folder"
+        # Set up XDG-compliant configuration for the game.
+        if [[ -d "$FFXIVCONFIG" ]]; then
+          # echo "dxvk.enableAsync = true" > "$FFXIVCONFIG/dxvk.conf"
+          ln -sfn "$FFXIVCONFIG/dxvk.conf" "$FFXIVWINPATH/boot/dxvk.conf"
         fi
-        if [[ ! -d "$folder" ]]; then
-          mkdir -p "$folder"
-        fi
-      done
 
-      mkdir -p "$FFXIVWINPATH/game/movie/ffxiv"
+        mkdir -p "$(dirname "$FFXIVWINCONFIG")" "$FFXIVCONFIG"
+        ln -sfn "$FFXIVCONFIG" "$FFXIVWINCONFIG"
 
-      if [[ ! -f "$FFXIVWINPATH/game/ffxivgame.ver" ]]; then
-        cp -R "${ffxiv.client}/boot" "$FFXIVWINPATH"
-        cp "${ffxiv.client}/game/ffxivgame.ver" "$FFXIVWINPATH/game"
-        find "$FFXIVWINPATH" -type f -exec chmod 644 {} +
-        find "$FFXIVWINPATH" -type d -exec chmod 755 {} +
-      fi
-
-      # Set up XDG-compliant configuration for the game.
-      if [[ -d "$FFXIVCONFIG" ]]; then
-        # echo "dxvk.enableAsync = true" > "$FFXIVCONFIG/dxvk.conf"
-        ln -sfn "$FFXIVCONFIG/dxvk.conf" "$FFXIVWINPATH/boot/dxvk.conf"
-      fi
-
-      mkdir -p "$(dirname "$FFXIVWINCONFIG")" "$FFXIVCONFIG"
-      ln -sfn "$FFXIVCONFIG" "$FFXIVWINCONFIG"
-
-      cd "$FFXIVWINPATH/boot" && wine64 ffxivboot64.exe
-    '';
+        cd "$FFXIVWINPATH/boot" && wine ffxivboot64.exe
+      '';
   };
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -155,7 +161,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   strictDeps = true;
 
-  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.hostPlatform.isDarwin desktopToDarwinBundle;
+  nativeBuildInputs = [
+    icoutils
+  ] ++ lib.optional stdenvNoCC.hostPlatform.isDarwin desktopToDarwinBundle;
 
   dontUnpack = true;
   dontConfigure = true;

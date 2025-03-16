@@ -46,10 +46,9 @@ let
   };
   protonCompatPatches = [ ./test.h-compat.patch ];
 
-  msyncPatch =
-    lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "10.2") [
-      ./msync-staging-10.2.patch
-    ];
+  msyncPatch = lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "10.2") [
+    ./msync-staging-10.2.patch
+  ];
 
   wine64Staging = wine64Packages.staging.override (
     {
@@ -76,7 +75,11 @@ wine64Staging.overrideAttrs (super: {
     (super.patches or [ ])
     ++
       lib.optionals
-        (stdenv.hostPlatform.isDarwin && lib.versionAtLeast wineVersion "9.1" && lib.versionOlder wineVersion "9.9")
+        (
+          stdenv.hostPlatform.isDarwin
+          && lib.versionAtLeast wineVersion "9.1"
+          && lib.versionOlder wineVersion "9.9"
+        )
         [
           # Causes the axes on PS4 DualShock controllers to be mapped incorrectly, making the game unplayable.
           (fetchpatch {
