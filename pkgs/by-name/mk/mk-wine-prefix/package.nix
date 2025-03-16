@@ -12,6 +12,7 @@
     buildPhase = "";
   },
   wine ? wine64,
+  wineName ? "wine64",
 }:
 
 let
@@ -55,21 +56,21 @@ stdenvNoCC.mkDerivation {
       mkdir -p "$WINEPREFIX"
 
       wineboot --init
-      wine64 msiexec /i ${wine}/share/wine/gecko/wine-gecko-*-x86_64.msi
+      ${lib.escapeShellArg wineName} msiexec /i ${wine}/share/wine/gecko/wine-gecko-*-x86_64.msi
 
       # Remove impurities from `system.reg` and `user.reg`
-      wine64 reg add 'HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders' \
+      ${lib.escapeShellArg wineName} reg add 'HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders' \
         /v 'Common Favorites' /d 'C:\users\Public\Favorites' /f
-      wine64 reg delete 'HKLM\System\CurrentControlSet\Control\ComputerName\ComputerName' /f
-      wine64 reg delete 'HKLM\System\CurrentControlSet\Services\Tcpip\Parameters' \
+      ${lib.escapeShellArg wineName} reg delete 'HKLM\System\CurrentControlSet\Control\ComputerName\ComputerName' /f
+      ${lib.escapeShellArg wineName} reg delete 'HKLM\System\CurrentControlSet\Services\Tcpip\Parameters' \
         /v 'Hostname' /f
-      wine64 reg delete 'HKLM\Software\Microsoft\Windows NT\CurrentVersion\ProfileList\S-1-5-21-0-0-0-1000' \
+      ${lib.escapeShellArg wineName} reg delete 'HKLM\Software\Microsoft\Windows NT\CurrentVersion\ProfileList\S-1-5-21-0-0-0-1000' \
         /v 'ProfileImagePath' /f
-      wine64 reg delete 'HKLM\Software\Microsoft\Cryptography' /v MachineGuid /f
+      ${lib.escapeShellArg wineName} reg delete 'HKLM\Software\Microsoft\Cryptography' /v MachineGuid /f
 
-      wine64 reg delete 'HKCU\Environment' /f
-      wine64 reg delete 'HKCU\Volatile Environment' /f
-      wine64 reg delete 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders' /f
+      ${lib.escapeShellArg wineName} reg delete 'HKCU\Environment' /f
+      ${lib.escapeShellArg wineName} reg delete 'HKCU\Volatile Environment' /f
+      ${lib.escapeShellArg wineName} reg delete 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders' /f
 
       wineserver -k SIGTERM
 
@@ -79,14 +80,14 @@ stdenvNoCC.mkDerivation {
       )
       for key in "''${installedPkgs[@]}"; do
         msipath=$(
-          wine64 reg query "$key" /v LocalPackage \
+          ${lib.escapeShellArg wineName} reg query "$key" /v LocalPackage \
           | tail -n 2 | cut -c31- | head -n 1 | sed -e s/$'\r'//';s/C:\\//;s|\\|/|g' || true
         )
         if [ -n "$msipath" ]; then
           read x
           stable_filename="$x$x$x$x.msi"
           mv "prefix/drive_c/$msipath" "prefix/drive_c/windows/Installer/$stable_filename"
-          wine64 reg add "$key" /v 'LocalPackage' /d 'C:\windows\Installer\'"$stable_filename" /f
+          ${lib.escapeShellArg wineName} reg add "$key" /v 'LocalPackage' /d 'C:\windows\Installer\'"$stable_filename" /f
         fi
       done < <(echo {a..z} | tr ' ' '\n')
     ''
