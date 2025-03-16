@@ -75,7 +75,7 @@ wine64Staging.overrideAttrs (super: {
     (super.patches or [ ])
     ++
       lib.optionals
-        (stdenv.isDarwin && lib.versionAtLeast wineVersion "9.1" && lib.versionOlder wineVersion "9.9")
+        (stdenv.hostPlatform.isDarwin && lib.versionAtLeast wineVersion "9.1" && lib.versionOlder wineVersion "9.9")
         [
           # Causes the axes on PS4 DualShock controllers to be mapped incorrectly, making the game unplayable.
           (fetchpatch {

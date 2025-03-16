@@ -24,7 +24,7 @@ let
     wineName = "wine";
     extras.files = lib.optionalAttrs enableDXVK { "windows/system32" = [ "${lib.getBin dxvk}/x64" ]; };
     extras.buildPhase =
-      lib.optionalString stdenvNoCC.isDarwin ''
+      lib.optionalString stdenvNoCC.hostPlatform.isDarwin ''
         echo "Setting up macOS keyboard mappings"
         for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
           wine reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
@@ -155,7 +155,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   strictDeps = true;
 
-  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.isDarwin desktopToDarwinBundle;
+  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.hostPlatform.isDarwin desktopToDarwinBundle;
 
   dontUnpack = true;
   dontConfigure = true;

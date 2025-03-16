@@ -44,8 +44,8 @@ let
       "WINEDEBUG=-all"
       "WINEESYNC=1"
     ]
-    ++ lib.optionals stdenvNoCC.isLinux [ "WINEFSYNC=1" ]
-    ++ lib.optionals stdenvNoCC.isDarwin [
+    ++ lib.optionals stdenvNoCC.hostPlatform.isLinux [ "WINEFSYNC=1" ]
+    ++ lib.optionals stdenvNoCC.hostPlatform.isDarwin [
       "WINEMSYNC=1"
       "MVK_CONFIG_LOG_LEVEL=0"
     ];
@@ -61,7 +61,7 @@ let
     inherit wine;
     extras.files = lib.optionalAttrs enableDXVK { "windows/system32" = [ "${lib.getBin dxvk}/x64" ]; };
     extras.buildPhase =
-      lib.optionalString stdenvNoCC.isDarwin ''
+      lib.optionalString stdenvNoCC.hostPlatform.isDarwin ''
         echo "Setting up macOS keyboard mappings"
         for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
           wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
@@ -215,7 +215,7 @@ stdenvNoCC.mkDerivation {
 
   strictDeps = true;
 
-  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.isDarwin desktopToDarwinBundle;
+  nativeBuildInputs = [ icoutils ] ++ lib.optional stdenvNoCC.hostPlatform.isDarwin desktopToDarwinBundle;
 
   dontConfigure = true;
 

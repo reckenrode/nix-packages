@@ -43,7 +43,7 @@ stdenvNoCC.mkDerivation {
   dontConfigure = true;
 
   # If sandboxing is set to relaxed, `wineboot` will fail unless it’s allowed these things.
-  sandboxProfile = lib.optionalString stdenvNoCC.isDarwin ''
+  sandboxProfile = lib.optionalString stdenvNoCC.hostPlatform.isDarwin ''
     (allow file-read-data (path-literal "/Library/Preferences/.GlobalPreferences.plist"))
     (allow mach-lookup mach-register (global-name-regex #"^/tmp/.wine-[A-Z0-9]*/.*$"))
   '';
