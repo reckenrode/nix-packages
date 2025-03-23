@@ -44,10 +44,10 @@ let
       "dlls/jscript"
     ];
   };
-  protonCompatPatches = [ ./test.h-compat.patch ];
+  protonCompatPatches = [ ./patches/test.h-compat.patch ];
 
   msyncPatch = lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "10.2") [
-    ./msync-staging-10.2.patch
+    ./patches/msync-staging-10.2.patch
   ];
 
   wine64Staging = wine64Packages.staging.override (
