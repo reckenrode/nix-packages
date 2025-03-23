@@ -47,7 +47,7 @@ let
   protonCompatPatches = [ ./patches/test.h-compat.patch ];
 
   msyncPatch = lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "10.2") [
-    ./patches/msync-staging-10.2.patch
+    ./patches/msync-staging.patch
   ];
 
   wine64Staging = wine64Packages.staging.override (
