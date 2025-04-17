@@ -2394,11 +2394,11 @@ index dbd4a97459c..2b023546907 100644
      no_signal,                        /* signal */
      console_server_get_fd,            /* get_fd */
 @@ -233,6 +238,7 @@ static const struct object_ops screen_buffer_ops =
-     NULL,                             /* remove_queue */
-     NULL,                             /* signaled */
+     remove_queue,                     /* remove_queue */
+     screen_buffer_signaled,           /* signaled */
      NULL,                             /* get_esync_fd */
 +    NULL,                             /* get_msync_idx */
-     NULL,                             /* satisfied */
+     no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      screen_buffer_get_fd,             /* get_fd */
 @@ -283,6 +289,7 @@ static const struct object_ops console_device_ops =
@@ -2410,16 +2410,16 @@ index dbd4a97459c..2b023546907 100644
      no_signal,                        /* signal */
      no_get_fd,                        /* get_fd */
 @@ -321,6 +328,7 @@ static const struct object_ops console_input_ops =
-     NULL,                             /* remove_queue */
-     NULL,                             /* signaled */
+     remove_queue,                     /* remove_queue */
+     console_input_signaled,           /* signaled */
      NULL,                             /* get_esync_fd */
 +    NULL,                             /* get_msync_idx */
      no_satisfied,                     /* satisfied */
      no_signal,                        /* signal */
      console_input_get_fd,             /* get_fd */
 @@ -379,6 +387,7 @@ static const struct object_ops console_output_ops =
-     NULL,                             /* remove_queue */
-     NULL,                             /* signaled */
+     remove_queue,                     /* remove_queue */
+     console_output_signaled,          /* signaled */
      NULL,                             /* get_esync_fd */
 +    NULL,                             /* get_msync_idx */
      no_satisfied,                     /* satisfied */
