@@ -46,10 +46,6 @@ let
   };
   protonCompatPatches = [ ./patches/test.h-compat.patch ];
 
-  msyncPatch = lib.optionals (lib.versionAtLeast (lib.getVersion wine64Staging) "10.5") [
-    ./patches/msync-staging.patch
-  ];
-
   wine64Staging = wine64Packages.staging.override (
     {
       embedInstallers = true;
@@ -88,8 +84,7 @@ wine64Staging.overrideAttrs (super: {
             revert = true;
           })
         ]
-    ++ protonCompatPatches
-    ++ msyncPatch;
+    ++ protonCompatPatches;
 
   postUnpack =
     (super.postUnpack or "")
