@@ -1,7 +1,7 @@
 {
   lib,
   stdenv,
-  fetchgit,
+  fetchFromGitHub,
   fetchpatch,
   fetchurl,
   requireFile,
@@ -35,8 +35,9 @@ let
 
   # Upstream Wine is not compatible with the new launcher, but Proton is. Use the jscript and
   # mshtml implementations from Proton with Wine, so the new launcher can be used.
-  proton.src = fetchgit {
-    url = "https://github.com/ValveSoftware/wine.git";
+  proton.src = fetchFromGitHub {
+    owner = "ValveSoftware";
+    repo = "wine";
     rev = "21e0d244da3336a640006e4e25ae28d7612a2c3c";
     hash = "sha256-hd6xNFh97sRgwZpZMQfFCSV29DAZa6rDbSD0zk3jHHw=";
     sparseCheckout = [
