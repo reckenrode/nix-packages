@@ -13,26 +13,6 @@
 
 assert enableDXVK -> !enableD3DMetal;
 let
-  moltenvk' = moltenvk.overrideAttrs (oldAttrs: {
-    patches = (oldAttrs.patches or [ ]) ++ [
-      (
-        if lib.versionOlder (lib.getVersion moltenvk) "1.2.9" then
-          fetchpatch {
-            name = "ffxiv-flicker.patch";
-            url = "https://github.com/KhronosGroup/MoltenVK/files/9686958/zeroinit.txt";
-            hash = "sha256-aORWU7zPTRKSTVF4I0D8rNthdxoZbioZsNUG0/Dq2go=";
-          }
-        else
-          ./ffxiv-flicker.patch
-      )
-      #     (fetchpatch {
-      #       name = "command-storage-optimization.patch";
-      #       url = "https://patch-diff.githubusercontent.com/raw/KhronosGroup/MoltenVK/pull/1678.patch";
-      #       hash = "sha256-LEQ1B83V6OsePfb3JVU0KH1DsL+RR28YB7A0aJKa+m0=";
-      #     })
-    ];
-  });
-
   # Upstream Wine is not compatible with the new launcher, but Proton is. Use the jscript and
   # mshtml implementations from Proton with Wine, so the new launcher can be used.
   proton.src = fetchFromGitHub {
@@ -52,7 +32,6 @@ let
       embedInstallers = true;
       gstreamerSupport = true;
     }
-    // lib.optionalAttrs enableDXVK { moltenvk = moltenvk'; }
     // lib.optionalAttrs enableD3DMetal {
       #    d3dmetal = d3dmetal.overrideAttrs (finalAttrs: prevAttrs: {
       #      version = "2.0";
