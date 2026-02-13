@@ -10,11 +10,11 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "secretive";
-  version = "2.4.1";
+  version = "3.0.4";
 
   src = fetchurl {
     url = "https://github.com/maxgoedjen/secretive/releases/download/v${finalAttrs.version}/Secretive.zip";
-    hash = "sha256-AN32UfEVHx44iMUeWM40P2iISA23l3G23nNx2yG95Ng=";
+    hash = "sha256-aW0HgS5EMQdSNKkAoBNtutMTGpEIblNfwrB9aaHQhLo=";
   };
 
   nativeBuildInputs = [ unzip ];
