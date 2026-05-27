@@ -57,9 +57,9 @@ let
   );
   wineVersion = lib.getVersion wine64Staging;
 in
-wine64Staging.overrideAttrs (super: {
+wine64Staging.overrideAttrs (prev: {
   patches =
-    (super.patches or [ ])
+    (prev.patches or [ ])
     ++
       lib.optionals
         (
