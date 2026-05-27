@@ -3,6 +3,7 @@
   stdenv,
   fetchFromGitHub,
   fetchpatch,
+  fetchpatch2,
   fetchurl,
   requireFile,
   moltenvk,
@@ -25,7 +26,17 @@ let
       "dlls/jscript"
     ];
   };
-  protonCompatPatches = [ ./patches/test.h-compat.patch ];
+  protonCompatPatches = [
+    ./patches/test.h-compat.patch
+    # Update Proton jscript for Wine 11.2 build changes.
+    # Backport of https://gitlab.winehq.org/wine/wine/-/commit/19294e0a26aff67748bcb6e9b97f4491fd244e14.
+    ./patches/jscript.rc-wine11.patch
+    # Don’t use `bool` as a variable name. Needed for GCC 15 compatibility.
+    (fetchpatch2 {
+      url = "https://gitlab.winehq.org/wine/wine/-/commit/0888ba08fbd3f05a695b522a32f0112dd791a29e.patch";
+      hash = "sha256-6lZ1TXhvAtEQNhdKvHU2FkatCOcBSBI9zWVNzrLHGqI=";
+    })
+  ];
 
   wine64Staging = wine64Packages.staging.override (
     {
@@ -66,13 +77,13 @@ wine64Staging.overrideAttrs (super: {
         ]
     ++ protonCompatPatches;
 
-  postUnpack =
-    (super.postUnpack or "")
-    + ''
-      for dir in mshtml jscript; do
-        rm -rf "$sourceRoot/dlls/$dir"
-        cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
-        chmod -R u+w "$sourceRoot/dlls/$dir"
-      done
-    '';
+  postUnpack = (prev.postUnpack or "") + ''
+    for dir in mshtml jscript; do
+      rm -rf "$sourceRoot/dlls/$dir"
+      cp -r "${proton.src}/dlls/$dir" "$sourceRoot/dlls/$dir"
+      chmod -R u+w "$sourceRoot/dlls/$dir"
+    done
+  '';
+
+#  prePatch = lib.replaceString "--all" "--all -W msxml3_embedded_cdata" prev.prePatch;
 })
