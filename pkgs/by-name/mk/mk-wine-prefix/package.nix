@@ -12,7 +12,7 @@
     buildPhase = "";
   },
   wine ? wine64,
-  wineName ? "wine64",
+  wineName ? "wine",
 }:
 
 let

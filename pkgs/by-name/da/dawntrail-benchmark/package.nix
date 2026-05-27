@@ -64,13 +64,13 @@ let
       lib.optionalString stdenvNoCC.hostPlatform.isDarwin ''
         echo "Setting up macOS keyboard mappings"
         for value in LeftOptionIsAlt RightOptionIsAlt LeftCommandIsCtrl RightCommandIsCtrl; do
-          wine64 reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
+          wine reg add 'HKCU\Software\Wine\Mac Driver' /v $value /d Y /f
         done
       ''
       + lib.optionalString enableDXVK ''
         # Set up overrides to make sure DXVK is being used.
         for dll in dxgi d3d11 mcfgthread-12; do
-          wine64 reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f
+          wine reg add 'HKCU\Software\Wine\DllOverrides' /v $dll /d native /f
         done
       '';
   };
@@ -262,8 +262,7 @@ stdenvNoCC.mkDerivation {
       --subst-var-by launcher-path "$out"
     chmod a+x "$out/bin/ffxiv-benchmark-launcher"
     substitute ffxiv-benchmark.py "$out/libexec/ffxiv-benchmark.py" \
-      --subst-var-by default-environment '${toString defaultEnvironment}' \
-      --subst-var-by wine '${wine}/bin/wine64'
+      --subst-var-by default-environment '${toString defaultEnvironment}'
 
     shopt -s extglob
     mkdir -p "$out/share/icons/hicolor"
